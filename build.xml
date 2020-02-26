@@ -30,6 +30,9 @@
       <classpath>
         <pathelement location="lib/appinventor/AndroidRuntime.jar" />
         <pathelement location="lib/appinventor/AnnotationProcessors.jar" />
+        <fileset dir="lib/android">
+          <include name="*.jar" />
+        </fileset>
       </classpath>
       <include name="**/*.java" />
     </javac>
