@@ -65,7 +65,7 @@
   <target name="unjarAllExtensionLibraries">
     <foreach target="unjarExtensionLibraries" param="extension" inheritall="true">
       <path>
-        <dirset dir="build/classes">
+        <dirset dir="build/externalComponents-classes">
           <include name="*" />
         </dirset>
       </path>
@@ -74,8 +74,8 @@
 
   <target name="unjarExtensionLibraries">
     <basename property="extensionClassFolder" file="${extension}" />
-    <unzip dest="build/classes/${extensionClassFolder}">
-      <fileset dir="build/classes/${extensionClassFolder}">
+    <unzip dest="build/externalComponents-classes/${extensionClassFolder}">
+      <fileset dir="build/externalComponents-classes/${extensionClassFolder}">
         <include name="**/*.jar" />
       </fileset>
     </unzip>
