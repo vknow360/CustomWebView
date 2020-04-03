@@ -30,6 +30,7 @@
       <classpath>
         <pathelement location="lib/appinventor/AndroidRuntime.jar" />
         <pathelement location="lib/appinventor/AnnotationProcessors.jar" />
+        <pathelement location="lib/kawa/kawa-1.11-modified.jar" />
         <fileset dir="lib/android">
           <include name="*.jar" />
         </fileset>
