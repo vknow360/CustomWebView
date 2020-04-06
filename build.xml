@@ -101,6 +101,9 @@
          basedir="${ExternalComponent-class.dir}/${extensionClassFolder}"
          includes="**/*.class"
          excludes="*.jar" />
+    <antcall target="ProGuard">
+      <param name="extensionClassFolder" value="${extensionClassFolder}" />
+    </antcall>
     <copy file="${ExternalComponent-class.dir}/${extensionClassFolder}.jar"
           tofile="${ExternalComponent.dir}/${extensionClassFolder}/files/AndroidRuntime.jar"/>
     <echo>Generated build file AndroidRuntime.jar [${extensionClassFolder}]</echo>
@@ -157,5 +160,44 @@
     </foreach>
   </target>
 
+  <!-- =====================================================================
+       ProGuard: obfuscates and minifies the AndroidRuntime.jar file, containing
+       the extensions source code. Only runs if the task has been called
+       like "ant extensions -Dproguard=1".
+       ===================================================================== -->
+
+  <condition property="skipProguard">
+    <not>
+      <equals arg1="${proguard}" arg2="1" />
+    </not>
+  </condition>
+
+  <target name="ProGuard" unless="skipProguard">
+    <taskdef resource="proguard/ant/task.properties"
+             classpath="lib/proguard/proguard.jar" />
+    <proguard printmapping="out/${extensionClassFolder}-proguard.map"
+              overloadaggressively="on"
+              configuration="lib/proguard/proguard.cfg"
+              ignorewarnings="false">
+
+      <injar  file="${ExternalComponent-class.dir}/${extensionClassFolder}.jar" />
+      <outjar file="${ExternalComponent-class.dir}/${extensionClassFolder}_p.jar" />
+
+      <libraryjar>
+        <fileset dir="lib">
+          <include name="**/*.jar"/>
+          <include name="**/*.aar"/>
+          <exclude name="*/dx.jar"/>
+        </fileset>
+      </libraryjar>
+
+      <dontnote filter="proguard.configuration.ConfigurationLogger" />
+      <adaptresourcefilecontents filter="proguard/ant/task.properties" />
+    </proguard>
+
+    <delete file="${ExternalComponent-class.dir}/${extensionClassFolder}.jar" />
+    <move file="${ExternalComponent-class.dir}/${extensionClassFolder}_p.jar"
+          tofile="${ExternalComponent-class.dir}/${extensionClassFolder}.jar" />
+  </target>
 
 </project>
