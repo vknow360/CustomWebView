@@ -18,4 +18,6 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Get content height
 - Get SSL Certificate of website
 - Get cookies for particular url/website
+- Event for permission(s) request
+- Grant permission(s) manually
 
