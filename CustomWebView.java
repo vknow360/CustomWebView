@@ -39,7 +39,7 @@ import com.google.appinventor.components.annotations.DesignerProperty;
 import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import android.view.MotionEvent;
-@DesignerComponent(version = 0, description = "Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png")
+@DesignerComponent(version = 1, description = "Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png")
 @SimpleObject(external=true)
 public final class CustomWebView extends AndroidNonvisibleComponent implements ActivityResultListener{
     public boolean NO_VIEW = true;
@@ -393,7 +393,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
             }
         }
   }
-  @SimpleProperty(description="description="Returns whether webview can access local files"")
+  @SimpleProperty(description="Returns whether webview can access local files")
   public boolean FileAccess() {
     return LoadLocalFiles;
   }
@@ -444,7 +444,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty(description="Sets whether the WebView should enable support for the "viewport" HTML meta tag or should use a wide viewport.")
+  @SimpleProperty(description="Sets whether the WebView should enable support for the 'viewport' HTML meta tag or should use a wide viewport.")
   public void UseWideViewPort(boolean ignoreSslErrors) {
     UseWideViewPort = ignoreSslErrors;
     webView.getSettings().setUseWideViewPort(UseWideViewPort);
@@ -453,7 +453,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   public boolean LoadWithOverviewMode() {
     return LoadWithOverviewMode;
   }
-  @SimpleProperty(description="Returns whether the WebView should enable support for the "viewport" HTML meta tag or should use a wide viewport.")
+  @SimpleProperty(description="Returns whether the WebView should enable support for the 'viewport' HTML meta tag or should use a wide viewport.")
   public boolean UseWideViewPort() {
     return UseWideViewPort;
   }
@@ -547,8 +547,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     if(Build.VERSION.SDK_INT >= 21){
         cookieManager.removeAllCookies(new ValueCallback<Boolean>() {
             @Override
-            public void onReceiveValue(Boolean boolean) {
-                CookiesRemoved(boolean);
+            public void onReceiveValue(Boolean aBoolean) {
+                CookiesRemoved(aBoolean);
             }
         });
         cookieManager.flush();
@@ -905,8 +905,8 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         }
         GotPrintResult(printJob.toString(),printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
     }
-    @SimpleFunction()
-    public void RestartPrinting(description="Restarts current/previous print job. You can request restart of a failed print job."){
+    @SimpleFunction(description="Restarts current/previous print job. You can request restart of a failed print job.")
+    public void RestartPrinting(){
         boolean gotResult = false;
         printJob.restart();
         while (!gotResult){
