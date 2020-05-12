@@ -22,5 +22,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Grant permission(s) manually
 - Print web content
 
+## Blocks
 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/5/e/5eed2dfc182329af169cb3879b6f4b751d38eec3.png">
 
