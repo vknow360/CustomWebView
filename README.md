@@ -10,7 +10,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Load local files and content using Html and Js
 - Find words and phrases in webview
 - Evaluate Js and get result
-- Block network image loads
+- Block network loads to save data and load faster
 - Upload files (requires Android 5.0)
 - Error occurred event
 - Get output from console
