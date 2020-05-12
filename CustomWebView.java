@@ -83,14 +83,14 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     public PermissionRequest PermissionRequest;
     public PrintJob printJob;
 
-	public CustomWebView(ComponentContainer container) {
-    super(container.$form());
-    mcontainer = container;
-    context = container.$context();
-    activity = (Activity) context;
-    webView = new WebView(context);
-    wvInterface = new WebViewInterface(webView.getContext());
-    webView.addJavascriptInterface(wvInterface, "AppInventor");
+   public CustomWebView(ComponentContainer container) {
+    	  super(container.$form());
+    	  mcontainer = container;
+    	  context = container.$context();
+    	  activity = (Activity) context;
+    	  webView = new WebView(context);
+    	  wvInterface = new WebViewInterface(webView.getContext());
+    	  webView.addJavascriptInterface(wvInterface, "AppInventor");
           webView.addJavascriptInterface(wvInterface, "Makeroid");
           webView.addJavascriptInterface(wvInterface, "Kodular");
           MOBILE_USER_AGENT = webView.getSettings().getUserAgentString();
@@ -225,7 +225,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
         NO_VIEW = false;
       }
   }
-  @SimpleFunction()
+  @SimpleFunction(description="Arrangement to create webview")
   public void CreateWebView(AndroidViewComponent container){
     if(NO_VIEW){
         View v = container.getView();
@@ -235,23 +235,22 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
         NO_VIEW = false;
       }
   }
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR,description="Set webview string")
   public void WebViewString(String newString) {
     wvInterface.setWebViewStringFromBlocks(newString);
   }
-  @SimpleProperty(category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(category = PropertyCategory.BEHAVIOR,description="Get webview string")
   public String WebViewString() {
     return wvInterface.webViewString;
   }
    
-  @SimpleProperty(
-      description = "",category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(description = "Get webview user agent",category = PropertyCategory.BEHAVIOR)
   public String UserAgent() {
     return UserAgent;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING,
       defaultValue = "")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets the WebView's user-agent string. If the string is null or empty, the system default value will be used. ")
   public void UserAgent(String userAgent) {
     UserAgent = userAgent;
 	webView.getSettings().setUserAgentString(UserAgent);
@@ -279,24 +278,24 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Returns follow links")
   public void FollowLinks(boolean follow) {
     followLinks = follow;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether the WebView requires a user gesture to play media")
   public void AutoplayMedia(boolean follow) {
     AutoplayMedia = follow;
     webView.getSettings().setMediaPlaybackRequiresUserGesture(AutoplayMedia);
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returns whether the WebView requires a user gesture to play media")
   public boolean AutoplayMedia() {
     return AutoplayMedia;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether the WebView should support zooming using its on-screen zoom controls and gestures")
   public void ZoomEnabled(boolean follow) {
     SupportZoom = follow;
     webView.getSettings().setBuiltInZoomControls(SupportZoom);
@@ -304,44 +303,44 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether the WebView should load image resources")
   public void AutoLoadImages(boolean follow) {
     AutoLoadImages = follow;
     webView.getSettings().setBlockNetworkImage(!AutoLoadImages);
     webView.getSettings().setLoadsImagesAutomatically(AutoLoadImages);
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returnss whether the WebView should load image resources")
   public boolean AutoLoadImages() {
     return AutoLoadImages;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether the WebView should display on-screen zoom controls")
   public void DisplayZoom(boolean follow) {
     ZoomDisplay = follow;
     webView.getSettings().setDisplayZoomControls(ZoomDisplay);
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_INTEGER,
       defaultValue = "100")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets the zoom of the page in percent. The default is 100")
   public void ZoomPercent(int follow) {
     ZoomPercent = follow;
     webView.getSettings().setTextZoom(ZoomPercent);
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_INTEGER,
       defaultValue = "16")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets the default font size of text. The default is 16.")
   public void FontSize(int follow) {
     FontSize = follow;
     webView.getSettings().setDefaultFontSize(FontSize);
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returns the font size of text")
   public int FontSize() {
     return FontSize;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether to load content in desktop mode")
   public void DesktopMode(boolean mode) {
     DesktopMode = mode;
     if(mode){
@@ -352,20 +351,20 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     webView.getSettings().setUserAgentString(UserAgent);
 	Reload();
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returns whether to load content in desktop mode")
   public boolean DesktopMode() {
     return DesktopMode;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether to enable text selection and context menu")
   public void LongClickable(boolean follow) {
     LongClickable = follow;
     webView.setLongClickable(LongClickable);
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether webview can access local files.Use this to enable file uploading and loading files using HTML")
   public void FileAccess(boolean follow) {
     LoadLocalFiles = follow;
         if (!hasReadAccess){
@@ -394,32 +393,32 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
             }
         }
   }
-  @SimpleProperty(description="")
+  @SimpleProperty(description="description="Returns whether webview can access local files"")
   public boolean FileAccess() {
     return LoadLocalFiles;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether the WebView supports multiple windows")
   public void SupportMultipleWindows(boolean follow) {
     SupportMultipleWindows = follow;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether the WebView should not load resources from the network.Use this to save data.")
   public void BlockNetworkLoads(boolean follow) {
     BlockNetworkLoads = follow;
     webView.getSettings().setBlockNetworkLoads(BlockNetworkLoads);
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returns whether the WebView should not load resources from the network")
   public boolean BlockNetworkLoads() {
     return BlockNetworkLoads;
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returns whether the WebView supports multiple windows")
   public boolean SupportMultipleWindows() {
     return SupportMultipleWindows;
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Gets wether text selection and context menu are enabled")
   public boolean LongClickable() {
     return LongClickable;
   }
@@ -432,39 +431,39 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
-  @SimpleProperty()
+  @SimpleProperty(description="Returns whether webview ignores SSL errors.")
   public void IgnoreSslErrors(boolean ignoreSslErrors) {
     ignoreSslErrors = ignoreSslErrors;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether the WebView loads pages in overview mode, that is, zooms out the content to fit on screen by width. This setting is taken into account when the content width is greater than the width of the WebView control.")
   public void LoadWithOverviewMode(boolean ignoreSslErrors) {
     LoadWithOverviewMode = ignoreSslErrors;
     webView.getSettings().setLoadWithOverviewMode(LoadWithOverviewMode);
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty()
+  @SimpleProperty(description="Sets whether the WebView should enable support for the "viewport" HTML meta tag or should use a wide viewport.")
   public void UseWideViewPort(boolean ignoreSslErrors) {
     UseWideViewPort = ignoreSslErrors;
     webView.getSettings().setUseWideViewPort(UseWideViewPort);
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returns whether the WebView loads pages in overview mode")
   public boolean LoadWithOverviewMode() {
     return LoadWithOverviewMode;
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returns whether the WebView should enable support for the "viewport" HTML meta tag or should use a wide viewport.")
   public boolean UseWideViewPort() {
     return UseWideViewPort;
   }
   @DesignerProperty(editorType= PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue="True")
-  @SimpleProperty()
+  @SimpleProperty(description="Tells the WebView to enable JavaScript execution.")
   public void EnableJS(boolean js) {
     Js = js;
     webView.getSettings().setJavaScriptEnabled(Js);
   }
-  @SimpleProperty()
+  @SimpleProperty(description="Returns whether webview supports JavaScript execution")
   public boolean EnableJS() {
     return Js;
   }
@@ -496,8 +495,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
         webView.getSettings().setGeolocationEnabled(UsesLocation);
     }
   }
-  @SimpleProperty(description = "If True, then prompt the user of the WebView to give permission to access the geolocation API. " +
-      "If False, then assume permission is granted.")
+  @SimpleProperty(description = "Returns whether webview will prompt for permission and raise 'OnPermissionRequest' event or not")
   public boolean PromptForPermission() {
     return prompt;
   }
@@ -511,11 +509,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "True")
-  @SimpleProperty(userVisible = true)
+  @SimpleProperty(userVisible = true,description="Sets whether webview will prompt for permission and raise 'OnPermissionRequest' event or not else assume permission is granted.")
   public void PromptForPermission(boolean prompt) {
     prompt = prompt;
   }
-  @SimpleProperty(userVisible = true)
+  @SimpleProperty(userVisible = true,description="Sets background color of webview")
   public void BackgroundColor(int bgColor) {
     webView.setBackgroundColor(bgColor);
   }
@@ -523,34 +521,34 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   public void WebViewStringChange(String value) {
     EventDispatcher.dispatchEvent(this, "WebViewStringChange",value);
   }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Stops the current load.")
   public void StopLoading(){
         webView.stopLoading();
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Reloads the current URL.")
    public void Reload(){
         webView.reload();
     }
-    @SimpleFunction(description="")
+    @SimpleFunction(description="Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html){
         webView.loadDataWithBaseURL("",html,"text/html","UTF-8",null);
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Gets whether this WebView has a back history item.")
   public boolean CanGoBack(){
         return webView.canGoBack();
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Gets whether this WebView has a forward history item.")
   public boolean CanGoForward(){
         return webView.canGoForward();
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Removes all cookies and raises 'CookiesRemoved' event")
   public void ClearCookies(){
     CookieManager cookieManager = CookieManager.getInstance();
     if(Build.VERSION.SDK_INT >= 21){
         cookieManager.removeAllCookies(new ValueCallback<Boolean>() {
             @Override
-            public void onReceiveValue(Boolean aBoolean) {
-                CookiesRemoved(aBoolean);
+            public void onReceiveValue(Boolean boolean) {
+                CookiesRemoved(boolean);
             }
         });
         cookieManager.flush();
@@ -571,63 +569,63 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     }
 }
 
-   @SimpleEvent(description="")
+   @SimpleEvent(description="Event raised after 'ClearCokies' method with result")
    public void CookiesRemoved(boolean successful){
     EventDispatcher.dispatchEvent(this,"CookiesRemoved",successful);
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Clears the resource cache.")
   public void ClearCache(){
         webView.clearCache(true);
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Tells this WebView to clear its internal back/forward list.")
   public void ClearInternalHistory(){
         webView.clearHistory();
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Goes back in the history of this WebView.")
   public void GoBack(){
 	  if(CanGoBack()){
         webView.goBack();
 	  }
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Goes forward in the history of this WebView.")
   public void GoForward(){
 	  if(CanGoForward()){
         webView.goForward();
 	  }
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Gets whether the page can go back or forward the given number of steps.")
   public boolean CanGoBackOrForward(int steps){
         return webView.canGoBackOrForward(steps);
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Goes to the history item that is the number of steps away from the current item. Steps is negative if backward and positive if forward.")
   public void GoBackOrForward(int steps){
 	  if(CanGoBackOrForward(steps)){
         webView.goBackOrForward(steps);
 	  }
     }
 	
-	@SimpleFunction(description="")
+	@SimpleFunction(description="Loads the given URL.")
     public void GoToUrl(String url){
             webView.loadUrl(url);
         }
-	@SimpleEvent(description="")
+	@SimpleEvent(description="Event raised when page loading has finished.")
     public void PageLoaded(){
-EventDispatcher.dispatchEvent(this, "PageLoaded");
+	EventDispatcher.dispatchEvent(this, "PageLoaded");
     }
-	@SimpleEvent(description="")
+	@SimpleEvent(description="Event raised when downloading is needed.")
     public void OnDownloadNeeded(String url,String contentDisposition,String mimeType,long size){
-EventDispatcher.dispatchEvent(this, "OnDownloadNeeded",url,contentDisposition,mimeType,size);
+	EventDispatcher.dispatchEvent(this, "OnDownloadNeeded",url,contentDisposition,mimeType,size);
     }
-	@SimpleEvent(description="")
+	@SimpleEvent(description="Event raised when page loading progress has changed.")
     public void OnProgressChanged(int progress){
 EventDispatcher.dispatchEvent(this, "OnProgressChanged",progress);
     }
-	@SimpleEvent(description="")
+	@SimpleEvent(description="Event raised after getting console message.")
     public void OnConsoleMessage(String message, int lineNumber, int sourceID, String level){
 EventDispatcher.dispatchEvent(this, "OnConsoleMessage",message,lineNumber,sourceID,level);
     }
 	
-	@SimpleFunction(description="")
+	@SimpleFunction(description="Asynchronously evaluates JavaScript in the context of the currently displayed page.")
     public void EvaluateJavaScript(String script){
         if (Build.VERSION.SDK_INT >= 19) {
             webView.evaluateJavascript(script, new ValueCallback<String>() {
@@ -639,20 +637,20 @@ EventDispatcher.dispatchEvent(this, "OnConsoleMessage",message,lineNumber,source
         }
         webView.loadUrl(script);
     }
-	@SimpleEvent(description="")
+	@SimpleEvent(description="Event raised after evaluating Js with result.")
     public void AfterJavaScriptEvaluated(String result){
 EventDispatcher.dispatchEvent(this, "AfterJavaScriptEvaluated",result);
     }
 	
-	@SimpleFunction(description="")
+	@SimpleFunction(description="Clears the highlighting surrounding text matches.")
 	public void ClearMatches(){
         webView.clearMatches();
     }
-	@SimpleEvent(description="")
+	@SimpleEvent(description="Event raised when something is long clicked in webview with item(image,string,empty,etc) and type(item type like 0,1,8,etc)")
 	public void LongClicked(String item,int type){
 EventDispatcher.dispatchEvent(this, "LongClicked",item,type);
     }
-	@SimpleEvent(description="")
+	@SimpleEvent(description="Event raised when any error is received during loading url and returns message,error code and failing url")
 	public void OnErrorReceived(String message,int errorCode,String url){
 EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
     }
@@ -784,11 +782,6 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         }
 
         @Override
-        public void onCloseWindow(WebView window) {
-            OnNewWindowCloseRequest();
-        }
-
-        @Override
         public void onProgressChanged(WebView view, int newProgress) {
             OnProgressChanged(newProgress);
         }
@@ -811,11 +804,11 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
     }
 
-    @SimpleEvent()
+    @SimpleEvent(description="Event raised when resubmission of form is needed")
     public void OnFormResubmission(){
         EventDispatcher.dispatchEvent(this,"OnFormResubmission");
     }
-    @SimpleFunction()
+    @SimpleFunction(description="Whether to resubmit form or not.")
     public void ResubmitForm(boolean reSubmit){
         if (reSubmit){
             reSend.sendToTarget();
@@ -823,46 +816,45 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
             dontSend.sendToTarget();
         }
     }
-	@SimpleEvent()
+	@SimpleEvent(description="Event raised when new window is requested by webview with target url ,boolean 'isDialog' and 'isPopup'")
 	public void OnNewWindowRequest(String url,boolean isDialog,boolean isPopup){
 		EventDispatcher.dispatchEvent(this, "OnNewWindowRequest",url,isDialog,isPopup);
     }
-    @SimpleEvent()
-    public void OnNewWindowCloseRequest(){
-        EventDispatcher.dispatchEvent(this,"OnNewWindowCloseRequest");
-    }
-	@SimpleFunction(description="")
+   
+	@SimpleFunction(description="Clears the highlighting surrounding text matches")
 	public int ContentHeight(){
         return webView.getContentHeight();
     }
-	@SimpleEvent(description="")
-	 public void GotCertificate(String issuedBy,String issuedTo,String validTill){
+	@SimpleEvent(description="Event raised after getting SSL certificate of current displayed url/website with boolean 'isSecure' and Strings 'issuedBy','issuedTo' and 'validTill'.If 'isSecure' is false and other values are empty then assume that website is not secure.")
+	 public void GotCertificate(boolean isSecure,String issuedBy,String issuedTo,String validTill){
         EventDispatcher.dispatchEvent(this, "GotCertificate",issuedBy,issuedTo,validTill);
     }
-	@SimpleFunction(description="")
+	@SimpleFunction(description="Gets the SSL certificate for the main top-level page and raises 'GotCertificate' event")
 	public void GetSslCertificate(){
         SslCertificate certificate = webView.getCertificate();
         if (certificate != null) {
-            GotCertificate(certificate.getIssuedBy().getDName(),certificate.getIssuedTo().getDName(),certificate.getValidNotAfterDate().toString());
-        }
+            GotCertificate(true,certificate.getIssuedBy().getDName(),certificate.getIssuedTo().getDName(),certificate.getValidNotAfterDate().toString());
+        }else{
+            GotCertificate(false,"","","");
+	}
     }
-	@SimpleEvent(description="")
+	@SimpleEvent(description="Event raised after 'Find' method with int 'activeMatchOrdinal','numberOfMatches' and 'isDoneCounting'")
 	public void FindResultReceived(int activeMatchOrdinal,int numberOfMatches,boolean isDoneCounting){
         EventDispatcher.dispatchEvent(this, "FindResultReceived",activeMatchOrdinal,numberOfMatches,isDoneCounting);
     }
-    @SimpleFunction()
+    @SimpleFunction(description="Clears all location preferences.")
     public void ClearLocation(){
         GeolocationPermissions.getInstance().clearAll();
     }
-	@SimpleFunction(description="")
+	@SimpleFunction(description="Finds all instances of find on the page and highlights them, asynchronously. Successive calls to this will cancel any pending searches.")
 	public void Find(String string){
         webView.findAllAsync(string);
     }
-	@SimpleFunction(description="")
+	@SimpleFunction(description="Get cookies for specific url")
 	public String GetCookies(String url){
         return CookieManager.getInstance().getCookie(url);
     }
-	@SimpleFunction(description="")
+	@SimpleFunction(description="Highlights and scrolls to the next match if 'forward' is true else scrolls to previous match.")
 	public void FindNext(boolean forward){
         webView.findNext(forward);
     }
@@ -886,21 +878,21 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
             webViewString = newString;
         }
     }
-    @SimpleFunction()
+    @SimpleFunction(description="Grants permissions to webview.It accepts a list of permissions.")
     public void GrantPermission(List<String> permissions){
         if (PermissionRequest != null){
             PermissionRequest.grant((String[]) permissions.toArray());
         }
     }
-    @SimpleEvent()
+    @SimpleEvent(description="Event raised when a website asks for specific permission(s) in list format.")
     public void OnPermissionRequest(List<String> permissionsList){
         EventDispatcher.dispatchEvent(this,"OnPermissionRequest",permissionsList);
     }
-    @SimpleEvent()
+    @SimpleEvent(description="Event raised after getting previus print's result.")
     public void GotPrintResult(String id,boolean isCompleted,boolean isFailed,boolean isBlocked){
         EventDispatcher.dispatchEvent(this,"GotPrintResult",id,isCompleted,isFailed,isBlocked);
     }
-    @SimpleFunction()
+    @SimpleFunction(description="Prints the content of webview with color mode(Use 2 for color scheme , 1 for monochrome scheme and 0 for default scheme. )")
     public void PrintWebContent(int colorMode){
         boolean gotResult = false;
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
@@ -914,7 +906,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         GotPrintResult(printJob.toString(),printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
     }
     @SimpleFunction()
-    public void RestartPrinting(){
+    public void RestartPrinting(description="Restarts current/previous print job. You can request restart of a failed print job."){
         boolean gotResult = false;
         printJob.restart();
         while (!gotResult){
@@ -922,7 +914,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         }
         GotPrintResult(printJob.toString(),printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
     }
-    @SimpleFunction()
+    @SimpleFunction(description="Cancels current print job. You can request cancellation of a queued, started, blocked, or failed print job.")
     public void CancelPrinting(){
         boolean gotResult = false;
         printJob.cancel();
