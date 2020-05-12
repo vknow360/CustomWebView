@@ -6,12 +6,11 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - More customization options than normal web viewer
 - Long Click event
 - New window request event
-- New window close request event
 - Load local files and content using Html and Js
 - Find words and phrases in webview
 - Evaluate Js and get result
 - Block network loads to save data and load faster
-- Upload files (requires Android 5.0)
+- Upload files to websites(requires Android 5.0)
 - Error occurred event
 - Get output from console
 - FormResubmission event
