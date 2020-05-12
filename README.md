@@ -50,5 +50,5 @@ CustomWebView is an extended form of web viewer with more customization and flex
 
 <img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/b/1/b1d5f11b6e4ef1bad1e2dcf93d01bbe25fb18538.png">
 
-<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/e/c/ec785830b24e37b7af567c8fe14454a497184dfb.png">
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/a/0/a090a99c4daf7da535f97728b10924d6f8e349bf.png">
 
