@@ -699,6 +699,11 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         }
 
         @Override
+        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            OnErrorReceived(errorResponse.getReasonPhrase(),errorResponse.getStatusCode(),request.getUrl().toString());
+        }
+
+        @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             OnErrorReceived(description,errorCode,failingUrl);
         }
@@ -827,7 +832,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
     }
 	@SimpleEvent(description="Event raised after getting SSL certificate of current displayed url/website with boolean 'isSecure' and Strings 'issuedBy','issuedTo' and 'validTill'.If 'isSecure' is false and other values are empty then assume that website is not secure.")
 	 public void GotCertificate(boolean isSecure,String issuedBy,String issuedTo,String validTill){
-        EventDispatcher.dispatchEvent(this, "GotCertificate",issuedBy,issuedTo,validTill);
+        EventDispatcher.dispatchEvent(this, "GotCertificate",isSecure,issuedBy,issuedTo,validTill);
     }
 	@SimpleFunction(description="Gets the SSL certificate for the main top-level page and raises 'GotCertificate' event")
 	public void GetSslCertificate(){
@@ -923,5 +928,4 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         }
         GotPrintResult(printJob.toString(),printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
     }
-
 }
