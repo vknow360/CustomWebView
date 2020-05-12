@@ -11,7 +11,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Find words and phrases in webview
 - Evaluate Js and get result
 - Block network image loads
-- Upload files (requires Android 4.0)
+- Upload files (requires Android 5.0)
 - Error occurred event
 - Get output from console
 - FormResubmission event
@@ -20,4 +20,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Get cookies for particular url/website
 - Event for permission(s) request
 - Grant permission(s) manually
+- Print web content
+
+
 
