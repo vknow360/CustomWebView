@@ -56,4 +56,4 @@ CustomWebView is an extended form of web viewer with more customization and flex
 ### Credits
 I would like to say thank you to following people for helping me in making CustomWebView:
 
-<img src="https://community.kodular.io/user_avatar/community.kodular.io/ontstudios/45/55737_2.png">  Mateja Srejić aka OntStudios (<a href="https://community.kodular.io/u/ontstudios/summary">Contact him</a>)img>
+<img src="https://community.kodular.io/user_avatar/community.kodular.io/ontstudios/45/55737_2.png">  Mateja Srejić aka OntStudios (<a href="https://community.kodular.io/u/ontstudios/summary">Contact him</a>)</img>
