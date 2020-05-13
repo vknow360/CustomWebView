@@ -39,7 +39,7 @@ import com.google.appinventor.components.annotations.DesignerProperty;
 import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import android.view.MotionEvent;
-@DesignerComponent(version = 1, description = "Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png")
+@DesignerComponent(version = 1, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
 @SimpleObject(external=true)
 public final class CustomWebView extends AndroidNonvisibleComponent implements ActivityResultListener{
     public boolean NO_VIEW = true;
@@ -928,4 +928,5 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         }
         GotPrintResult(printJob.toString(),printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
     }
+
 }
