@@ -402,8 +402,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   @SimpleProperty(description="Sets whether the WebView supports multiple windows")
   public void SupportMultipleWindows(boolean follow) {
     SupportMultipleWindows = follow;
-	webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(SupportMultipleWindows);
-        webView.getSettings().setSupportMultipleWindows(SupportMultipleWindows);
+    webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(SupportMultipleWindows);
+    webView.getSettings().setSupportMultipleWindows(SupportMultipleWindows);
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
@@ -425,15 +425,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     return LongClickable;
   }
   @SimpleProperty(
-      description = "Returns whether webview ignores SSL errors.",
+      description = "Returns whether webview ignores SSL errors",
       category = PropertyCategory.BEHAVIOR)
   public boolean IgnoreSslErrors() {
     return ignoreSslErrors;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
-  @SimpleProperty(description="Returns whether webview ignores SSL errors.Determine whether or not to ignore SSL errors. Set to true to ignore " +
-          "errors. Use this to accept self signed certificates from websites.")
+  @SimpleProperty(description="Determine whether or not to ignore SSL errors. Set to true to ignore " +
+  "errors. Use this to accept self signed certificates from websites")
   public void IgnoreSslErrors(boolean ignoreSslErrors) {
     ignoreSslErrors = ignoreSslErrors;
   }
@@ -503,7 +503,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   }
   
   @DesignerProperty(defaultValue = "True", editorType = "boolean")
-  @SimpleProperty(description = "Whether to display a scrollbar or not")
+  @SimpleProperty(description = "Whether to display horizonatal and vertical scrollbars or not")
   public void Scrollbar(boolean paramBoolean) {
     scrollbar = paramBoolean;
     webView.setVerticalScrollBarEnabled(scrollbar);
@@ -828,7 +828,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 		EventDispatcher.dispatchEvent(this, "OnNewWindowRequest",url,isDialog,isPopup);
     }
    
-	@SimpleFunction(description="Clears the highlighting surrounding text matches")
+	@SimpleFunction(description="Gets height of HTML content")
 	public int ContentHeight(){
         return webView.getContentHeight();
     }
