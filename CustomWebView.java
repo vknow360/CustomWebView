@@ -402,6 +402,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
   @SimpleProperty(description="Sets whether the WebView supports multiple windows")
   public void SupportMultipleWindows(boolean follow) {
     SupportMultipleWindows = follow;
+	webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(SupportMultipleWindows);
+        webView.getSettings().setSupportMultipleWindows(SupportMultipleWindows);
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
@@ -423,15 +425,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     return LongClickable;
   }
   @SimpleProperty(
-      description = "Determine whether or not to ignore SSL errors. Set to true to ignore " +
-          "errors. Use this to accept self signed certificates from websites.",
+      description = "Returns whether webview ignores SSL errors.",
       category = PropertyCategory.BEHAVIOR)
   public boolean IgnoreSslErrors() {
     return ignoreSslErrors;
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
-  @SimpleProperty(description="Returns whether webview ignores SSL errors.")
+  @SimpleProperty(description="Returns whether webview ignores SSL errors.Determine whether or not to ignore SSL errors. Set to true to ignore " +
+          "errors. Use this to accept self signed certificates from websites.")
   public void IgnoreSslErrors(boolean ignoreSslErrors) {
     ignoreSslErrors = ignoreSslErrors;
   }
