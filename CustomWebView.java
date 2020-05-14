@@ -39,7 +39,7 @@ import com.google.appinventor.components.annotations.DesignerProperty;
 import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import android.view.MotionEvent;
-@DesignerComponent(version = 1, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
+@DesignerComponent(version = 2, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
 @SimpleObject(external=true)
 public final class CustomWebView extends AndroidNonvisibleComponent implements ActivityResultListener{
     public boolean NO_VIEW = true;
@@ -66,7 +66,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     public boolean ignoreSslErrors = true;
     public boolean LoadLocalFiles = true;
     public boolean SupportMultipleWindows = true;
-    public WebViewInterface wvInterface;
+    WebViewInterface wvInterface;
     public String WebViewString ;
     public boolean UseWideViewPort = true;
     public boolean LoadWithOverviewMode = true;
@@ -879,7 +879,11 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         @JavascriptInterface
         public void setWebViewString(final String newString) {
             webViewString = newString;
-            WebViewStringChange(newString);
+            activity.runOnUiThread(new Runnable() {
+                public void run() {
+                  WebViewStringChange(newString);
+                }
+              });
         }
         public void setWebViewStringFromBlocks(final String newString) {
             webViewString = newString;
