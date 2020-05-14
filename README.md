@@ -186,3 +186,7 @@ Stops the current load<br><img src="https://kodular-community.s3.dualstack.eu-we
 I would like to say thank you to following people for helping me in making CustomWebView:
 
 <img src="https://community.kodular.io/user_avatar/community.kodular.io/ontstudios/45/55737_2.png">  Mateja Srejić aka OntStudios (<a href="https://community.kodular.io/u/ontstudios/summary">Contact him</a>)</img>
+
+### Reference Links
+1.WebView Docs from Google (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)
+2.Extension release on Kodular Community (<a href="https://community.kodular.io/t/customwebview-an-extended-form-of-web-viewer/63037">Click here</a>)
