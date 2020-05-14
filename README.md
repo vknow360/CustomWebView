@@ -165,7 +165,7 @@ Loads the given URL<br><img src="https://kodular-community.s3.dualstack.eu-west-
 Grants permissions to webview.It accepts a list of permissions<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/7/d/7ddad44a0f1facbf999ab54d28202866b3a6977f.png"><br>permissions ~ list < String >
 
 >- **Load HTML**<br>
-Loads the given data into this WebView using a 'data' scheme URL<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/0/5/0557df57665eb92c8c6bd97e02c9d3cd7444e88b.png"><br>html ~ text
+Loads the given data into this WebView using a 'data' scheme URL<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/0/5/0557df57665eb92c8c6bd97e02c9d3cd7444e88b.png"><br>html ~ text
 
 >- **Print Web Content**<br>
 Prints the content of webview with color mode(Use 2 for color scheme , 1 for monochrome scheme and 0 for default scheme<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/f/0/f05407805caa8417d111379525233cdc4c5cb18f.png"><br>colorMode ~ int
