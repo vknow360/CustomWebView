@@ -363,7 +363,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     webView.setLongClickable(LongClickable);
   }
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
+      defaultValue = "False")
   @SimpleProperty(description="Sets whether webview can access local files.Use this to enable file uploading and loading files using HTML")
   public void FileAccess(boolean follow) {
     LoadLocalFiles = follow;
