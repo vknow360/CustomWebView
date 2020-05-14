@@ -188,5 +188,5 @@ I would like to say thank you to following people for helping me in making Custo
 <img src="https://community.kodular.io/user_avatar/community.kodular.io/ontstudios/45/55737_2.png">  Mateja Srejić aka OntStudios (<a href="https://community.kodular.io/u/ontstudios/summary">Contact him</a>)</img>
 
 ### Reference Links
-1.WebView Docs from Google (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)
+1.WebView Docs from Google (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)<br>
 2.Extension release on Kodular Community (<a href="https://community.kodular.io/t/customwebview-an-extended-form-of-web-viewer/63037">Click here</a>)
