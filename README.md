@@ -55,24 +55,24 @@ CustomWebView is an extended form of web viewer with more customization and flex
 #### Events
 >- **AfterJavaScriptEvaluated**
 Event raised after evaluating Js with result
-![component_event|386x85](upload://jWcoY2X6v8lpuQLtO78XVONTY3f.png)
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/8/b/8bbd83e08a6fd64f29325ffcf19017dfdc928091.png">
 result ~ text
 
 >- **Cookies Removed**
 Event raised after 'ClearCokies' method with result
-![component_event (1)|341x85](upload://oI4JYSznL15vEDYdk7aBC6tZy4p.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/a/d/ad2fac53aba7a32bb3b6996bf7b8c7f7d39af0c1.png">
 successful ~ boolean
 
 >- **Find Result Received**
 Event raised after 'Find' method with int 'activeMatchOrdinal','numberOfMatches' and 'isDoneCounting'
-![component_event (2)|448x85](upload://xY3MHzsZXSQpVKz2I6KkCHxUScg.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/e/e/ee11ce248b7c1da84ab1c3aba841a90163d3b640.png">
 activeMatchOrdinal ~ int
 numberOfMatches ~ int
 isDoneCounting ~ boolean
 
 >- **Got Ssl Certificate**
 Event raised after getting SSL certificate of current displayed url/website with boolean 'isSecure' and Strings 'issuedBy','issuedTo' and 'validTill'.If 'isSecure' is false and other values are empty then assume that website is not secure
-![component_event (3)|344x85](upload://bxKFHGfUwWtq1yjqSzgkkN5iM4D.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/5/0/50e8a959b0a8475154314bdadb6b959cf8ab2a7f.png">
 isSecure ~ boolean
 issuedBy ~ text
 issuedTo ~ text
@@ -80,7 +80,7 @@ validTill ~ text
 
 >- **Got Print Result**
 Event raised after getting previus print's result
-![component_event (4)|328x85](upload://j2N2c0zrCrd70x3Ca5cnKQngWjm.png)
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/8/5/857a11afada7f35b29d846db53c0dff86716a808.png">
 id ~ text
 isCompleted ~ boolean 
 isFailed ~ boolean 
@@ -88,13 +88,13 @@ isBlocked ~ boolean
 
 >- **Long Clicked**
 Event raised when something is long clicked in webview with item(image,string,empty,etc) and type(item type like 0,1,8,etc)
-![component_event (5)|306x85](upload://5roi20FxZ0dJufn9NvaudGRxQMM.png)
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/2/6/26238a95392665c5fcb3a0d418f8d846640374e8.png">
 item ~ text
 type - int
 
 >- **On Console Message**
 Event raised after getting console message
-![component_event (6)|362x85](upload://6CGMZioCSO1jrC1mfKJfNsrxlDb.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/2/e/2e6cabc5498ec197fc427395a61aec6eaf7beeb9.png">
 message ~ text
 lineNumber ~ int
 sourceID ~ int
@@ -102,7 +102,7 @@ level ~ text
 
 >- **On Download Needed**
 Event raised when downloading is needed
-![component_event (7)|357x85](upload://tnEV5o12ftkU3HcIgD5Jeh844O2.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/c/d/cdebb9b304e2222e57ee94a659ad04571d1f5a6e.png">
 url ~ text
 contentDisposition ~ text
 mimeType ~ text
@@ -110,160 +110,160 @@ size ~ int (long)
 
 >- **On Error Received**
 Event raised when any error is received during loading url and returns message,error code and failing url
-![component_event (8)|334x85](upload://g98eO3x1YLWYDT1yYHqIWIQgNA7.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/7/1/712b12d48e896960a4cd68ff87ac61953ed49243.png">
 message ~ text
 errorCode ~ int
 url ~ text
 
 >- **On Form Resubmission**
 Event raised when resubmission of form is needed
-![component_event (9)|367x60](upload://avf5RG8pnGXwgte2ucIXMpc8mAS.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/4/9/499ddf3d6fc35bf525e8b024231671b7b7977726.png">
 
 >- **On New Window Request**
 Event raised when new window is requested by webview with target url ,boolean 'isDialog' and 'isPopup'
-![component_event (10)|377x85](upload://gwVb9iofcPwWwC5DQq4NGGbzvon.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/7/3/73db7f4d362abf3afac5bfd9c04090fe579384bb.png">
 url ~ text
 isDialog ~ boolean
 isPopUp ~ boolean
 
 >- **On Permission Request**
 Event raised when a website asks for specific permission(s)
-![component_event (11)|368x85](upload://2gR170MfIBThXIoFpf06A7YDDmC.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/0/f/0fec1b4536fd6e6905ac27770cfc677899afb5be.png">
 permissionsList ~ list < String >
 
 >- **On Progress Changed**
 Event raised when page loading progress has changed
-![component_event (12)|359x85](upload://bB9PsjED5bIy5JQfE1wggsFR8VP.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/5/1/514b37ee05051f5b0996171f7ee47ab21c5b0c89.png">
 progress ~ int
 
 >- **Page Loaded**
 Event raised when page loading has finished
-![component_event (13)|308x60](upload://sz3esH4VHJSImV6d0qdxBjwJXIX.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/c/8/c833386b8a67f372897b013c5171db586599cbc7.png">
 
 >- **Web View String Change**
 Event indicating change in webview string
-![component_event (14)|384x85](upload://wTgoMEyUBqK8kxn2RJGCVTWLWsh.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/e/6/e684d3d556edc00c2863806a97204f286fc6e149.png">
 value ~ text
 
 #### Methods
 >- **Can Go Back**
 Gets whether this WebView has a back history item
-![component_method (3)|303x26](upload://doQHtzfRHIAndSt14It9q5i7NNZ.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/5/d/5deb60f0f2c2b86804c96b5db0ba3236bc48e427.png">
 **Returns : boolean**
 
 >- **Can Go Back Or Forward**
 Gets whether the page can go back or forward the given number of steps
-![component_method (4)|389x50](upload://hyEKwU7VkH974gWKgr4PL4YuulU.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/7/b/7b0fe125a515d65df34c46d426be704dcaef4456.png">
 steps ~ int
 **Returns : boolean**
 
 >- **Can Go Forward**
 Gets whether this WebView has a forward history item
-![component_method (5)|324x26](upload://fbFCvT6tJnuLUEFOzlQihtUbtXL.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/6/a/6a725b765d0449af4e120b6902938c55246647b5.png">
 **Returns : boolean**
 
 >- **Cancel Printing**
 Cancels current print job. You can request cancellation of a queued, started, blocked, or failed print job
-![component_method (6)|303x30](upload://uMNXskDJ2hgjdCxeEs9gz2n90IA.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/d/7/d7c5933df5fc1ec0ecda73e35789e6da40b33874.png">
 
 >- **Clear Cache**
 Clears the resource cache
-![component_method (7)|285x30](upload://ejQOCHkOYJQ6x7GVgl7VSt82jN7.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/6/4/645cea3d953f4e5cc75ece1b8171a65e19aac601.png">
 
->- **Clear Internal History*
+>- **Clear Internal History**
 Tells this WebView to clear its internal back/forward list
-![component_method (8)|337x30](upload://3wUdkvTKBJPKAHPennjLnlyBHyb.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/1/8/18bec90c94bbb65ba9703c4914a5a36bf6df3e8b.png">
 
 >- **Clear Location**
 Clears all location preferences
-![component_method (9)|298x30](upload://oY5je2ciBqAng3uQt7mk3iMybJX.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/a/e/aefef37c461d8d38b27a1918c16b0c0b44d500bd.png">
 
 >- **Clear Matches**
 Clears the highlighting surrounding text matches
-![component_method (10)|298x30](upload://4p3je7aKuTbOL79XIEtDLvdTtxa.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/1/e/1eddb2b757f546cd774996b1ef2c75991d5b8cf4.png">
 
 >- **Content Height**
 Returns content height of HTML content
-![component_method (11)|310x26](upload://ahNyetSNrzCogoeiUUEDgnWQ7AH.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/4/8/4818d1a479d81014c9e69bbe08c25b414ea7719f.png">
 **Returns : int**
 
 >- **Create WebView**
 Arrangement to create webview. Horizontal and Vertical Arrangements are recommended.
-![component_method (12)|321x54](upload://fqgqXvNTOOu6HP0EGEv2tASVev4.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/6/c/6c18ad0c917ce7e36e94f9416525526271c04f16.png">
 container ~ arrangement
 
 >- **Evaluate JavaScript**
 Asynchronously evaluates JavaScript in the context of the currently displayed page
-![component_method (13)|341x54](upload://zrv9o7vy5otuaDkn5dztrtzD8Y7.png)
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/f/8/f867f66a8ee328217145e304b0c8c3d417c82247.png">
 script ~ text
 
 >- **Find** 
 Finds all instances of find on the page and highlights them, asynchronously. Successive calls to this will cancel any pending searches
-![component_method (14)|244x54](upload://8qQ7LTUVo60LjVJ8pZGu6mQJwIS.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/3/b/3b1a1ddb0ce9db4046273b2e9697b3ac057a9ff6.png">
 string ~ text
 
 >- **Find Next**
 Highlights and scrolls to the next match if 'forward' is true else scrolls to previous match
-![component_method (15)|275x54](upload://vQwrptoR9QzBrYJeYGYIQk4aKfN.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/d/f/df33538bc419788635a1cad19f6a7d1ca7d770fb.png">
 forward ~ boolean
 
 >- **Get Cookies**
 Get cookies for specific url
-![component_method (16)|300x50](upload://k9HFA6f2AAJppAlzp0vRmLKKSb1.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/8/d/8d444e9ffdb8dab7b3df29959cdd15047d99a513.png">
 url ~ text
 
 >- **Get Ssl Certificate**
 Gets the SSL certificate for the main top-level page and raises 'GotCertificate' event
-![component_method (17)|318x30](upload://dGGsu2gfzKPHbD4aXonARGoFR0t.png)
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/5/f/5fef7cd0d475632278424ef566291b43492ba829.png">
 
 >- **Go Back** 
 Goes back in the history of this WebView
-![component_method (18)|264x30](upload://t0f9i3bxl4YBTvfbLnANE2115pI.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/c/b/cb461dc20cc0b19a7cf9e1d257437df22611df96.png">
 
 >- **Go Back Or Forward**
 Goes to the history item that is the number of steps away from the current item. Steps is negative if backward and positive if forward
-![component_method (19)|350x54](upload://z1QH6EwTYHanE5g0vcB3IyDOh4y.png)
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/f/5/f5819f5f07fa0dc5bd686718d485ae1c5b72457e.png">
 steps ~ int
 
 >- **Go Forward**
 Goes forward in the history of this WebView
-![component_method (20)|285x30](upload://rEiosEUcItNliyQs0VysV1iKMye.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/c/1/c1c8d07918553fa79281c8eec0679182230946da.png">
 
 >- **Go To Url**
 Loads the given URL
-![component_method (21)|288x54](upload://r1bRfHJEO2h5mbUUe65ucgEzNQ2.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/b/d/bd5d2ba9fbf1720ee00fef60520888ddcc9019c6.png">
 url ~ text
 
 >- **Grant Permission**
 Grants permissions to webview.It accepts a list of permissions
-![component_method (22)|325x54](upload://hXmwrEtL1VfrIw0tCPWRjiuXCwv.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/7/d/7ddad44a0f1facbf999ab54d28202866b3a6977f.png">
 permissions ~ list < String >
 
 >- **Load HTML**
 Loads the given data into this WebView using a 'data' scheme URL
-![component_method (23)|292x54](upload://LgEuKdMNXofdKBMdJyDqbHzogj.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/0/5/0557df57665eb92c8c6bd97e02c9d3cd7444e88b.png">
 html ~ text
 
 >- **Print Web Content**
 Prints the content of webview with color mode(Use 2 for color scheme , 1 for monochrome scheme and 0 for default scheme
-![component_method (24)|327x54](upload://yi2CJX7JjJD94XiTOkzexFIecov.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/f/0/f05407805caa8417d111379525233cdc4c5cb18f.png">
 colorMode ~ int
 
 >- **Reload**
 Reloads the current URL
-![component_method (25)|254x30](upload://3YOvcOtN6atA3hCY1d5Nu43HqTQ.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/1/b/1be6643cfd756efdfde28f329c665c3d6427b946.png">
 
 >- **Restart Printing**
 Restarts current/previous print job. You can request restart of a failed print job
-![component_method (26)|305x30](upload://qPfwP4266BCR6eW4vb3SrBljwww.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/b/c/bc039fd059fbe13551700b27b3a819e2fb071e38.png">
 
 >- **Resubmit Form**
 Whether to resubmit form or not
-![component_method (28)|312x54](upload://273gwKHSBGpE6OUpQqvUklWbnvw.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/0/e/0ed070cd64e6aaee28761457a03fd2ea92ae12a6.png">
 
 >- **Stop Loading**
 Stops the current load
-![component_method (30)|294x30](upload://rTzvPNDhMBFFohefVkSKhRuA65k.png) 
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/c/3/c382e0ff39e983e222d0badd69b134cffd490cc2.png">
 
 ### Credits
 I would like to say thank you to following people for helping me in making CustomWebView:
