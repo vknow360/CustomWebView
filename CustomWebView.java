@@ -740,7 +740,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
        }
 
        @Override
-       public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+       public boolean onCreateWindow(WebView view,final boolean isDialog,final boolean isUserGesture, Message resultMsg) {
            if (SupportMultipleWindows){
               final WebView mWebView = new WebView(context);
                mWebView.setWebViewClient(new WebViewClient(){
@@ -831,6 +831,8 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         }else {
             dontSend.sendToTarget();
         }
+        reSend = null;
+        dontSend = null;
       }
     }
 	@SimpleEvent(description="Event raised when new window is requested by webview with target url ,boolean 'isDialog' and 'isPopup'")
@@ -871,12 +873,14 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
   public void DismissJsAlert(){
     if (jsAlert != null) {
       jsAlert.cancel();
+      jsAlert = null;
     }
     }
   @SimpleFunction(description="Inputs a confirmation response to Js")
   public void ContinueJs(String input){
     if (jsPromptResult != null) {
       jsPromptResult.confirm(input);
+      jsPromptResult = null;
     }
     }
   @SimpleFunction(description="Whether to proceed JavaScript originated request")
@@ -887,6 +891,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
       }else{
           jsResult.cancel();
       }
+      jsResult = null;
     }
     }
   @SimpleEvent(description="Notifies that the WebView received an HTTP authentication request.")
