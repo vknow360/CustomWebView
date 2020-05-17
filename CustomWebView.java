@@ -968,13 +968,11 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         boolean gotResult = false;
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
         PrintDocumentAdapter printDocumentAdapter = webView.createPrintDocumentAdapter(webView.getTitle());
-        PrintAttributes.Builder printAttributes = new PrintAttributes.Builder();
-        printAttributes.setColorMode(colorMode);
-        printJob = printManager.print(webView.getTitle(),printDocumentAdapter,printAttributes.build());
+        printJob = printManager.print(webView.getTitle(),printDocumentAdapter,new PrintAttributes.Builder().build());
         while (!gotResult){
             gotResult = printJob.isStarted() || printJob.isBlocked() || printJob.isCancelled() || printJob.isCompleted() || printJob.isFailed();
         }
-        GotPrintResult(printJob.toString(),printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
+        GotPrintResult(printJob.getId().toString(),printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
     }
     @SimpleFunction(description="Restarts current/previous print job. You can request restart of a failed print job.")
     public void RestartPrinting(){
