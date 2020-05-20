@@ -34,14 +34,18 @@ CustomWebView is an extended form of web viewer with more customization and flex
 
 <img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/e/b/ebd3525bba1f84800189545b9af733731d6bab09.png">
 
-<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/d/a/daa7b33c9a784a9ef5da85f19c292b3562c302ea.png">
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/d/2/d261afc2dd1471d13b1019c81e8001554db90711.png">
+
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/4/1/417a3d7a12225b4028b98351d4c93a3e558eb2d0.png">
 
 #### Methods
 <img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/5/e/5eed2dfc182329af169cb3879b6f4b751d38eec3.png">
 
-<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/3/1/31ea76a6dcb53bcb194302a24593d4e3f0a455d1.png">
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/2/5/25a2fb4f0986adc4145d7007dd0c8b99875639d4.png">
 
-<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/9/d/9d2ce4eebfe20ac57a27d31a2e37e393e87dd447.png">
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/7/c/7c525389ba1dcbba13bf403770516f80c40d4966.png">
+
+<img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/6/c/6c8c176fc3eff46a6948890cfda4cadb5b9a5969.png">
 
 #### Properties
 <img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/d/c/dc25b49f065626e300f3b6c7f96817b8ae7ccd53.png">
@@ -88,6 +92,15 @@ Event raised when any error is received during loading url and returns message,e
 >- **On Form Resubmission**<br>
 Event raised when resubmission of form is needed<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/4/9/499ddf3d6fc35bf525e8b024231671b7b7977726.png">
 
+>- **On Js Alert**<br>
+Event raised when Js have to show an alert to user with message to be shown<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/5/3/534be11bca8affdc0f67f681976cee8e6cc0fedd.png"><br>url ~ text<br>message ~ text
+
+>- **On Js Confirm**<br>
+Tells to display a confirm dialog to the user<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/a/f/aff1918ef03036ac3ebdda7cb16f2353c5b97beb.png"><br>url ~ text<br>message ~ text
+
+>- **On Js Prompt**<br>
+Event raised when JavaScript needs input from user<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/6/f/6ff1aafe37d32766d82937e7ae279fc43665f7eb.png"><br>url ~ text<br>message ~ text<br> defaultValue ~ text
+
 >- **On New Window Request**<br>
 Event raised when new window is requested by webview with target url ,boolean 'isDialog' and 'isPopup'<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/7/3/73db7f4d362abf3afac5bfd9c04090fe579384bb.png"><br>url ~ text<br>isDialog ~ boolean<br>isPopUp ~ boolean
 
@@ -129,11 +142,20 @@ Clears all location preferences<br><img src="https://kodular-community.s3.dualst
 >- **Clear Matches**<br>
 Clears the highlighting surrounding text matches<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/1/e/1eddb2b757f546cd774996b1ef2c75991d5b8cf4.png">
 
+>- **Confirm Js**<br>
+Whether to proceed JavaScript originated request<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/e/2/e29e8f03477671bbba48d69df114b2311abda764.png"><br>confirm ~ boolean
+
 >- **Content Height**<br>
 Returns content height of HTML content<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/4/8/4818d1a479d81014c9e69bbe08c25b414ea7719f.png"><br>**Returns : int**
 
+>- **Continue Js**<br>
+Inputs a confirmation response to Js<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/f/5/f583e0c1bf5902e191f8994b3f8bfe93f1670f5c.png"><br>confirm ~ boolean
+
 >- **Create WebView**<br>
 Arrangement to create webview. Horizontal and Vertical Arrangements are recommended<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/6/c/6c18ad0c917ce7e36e94f9416525526271c04f16.png"><br>container ~ arrangement
+
+>- **Dismiss Js Alert**<br>
+Dismiss previously requested Js alert<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/f/7/f748611cbf88aa4c359d7037f7144a4c12929e73.png">
 
 >- **Evaluate JavaScript**<br>
 Asynchronously evaluates JavaScript in the context of the currently displayed page<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/f/8/f867f66a8ee328217145e304b0c8c3d417c82247.png"><br>script ~ text
@@ -169,7 +191,7 @@ Grants permissions to webview.It accepts a list of permissions<br><img src="http
 Loads the given data into this WebView using a 'data' scheme URL<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/0/5/0557df57665eb92c8c6bd97e02c9d3cd7444e88b.png"><br>html ~ text
 
 >- **Print Web Content**<br>
-Prints the content of webview with color mode(Use 2 for color scheme , 1 for monochrome scheme and 0 for default scheme)<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/f/0/f05407805caa8417d111379525233cdc4c5cb18f.png"><br>colorMode ~ int
+Prints the content of webview  <br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/c/0/c0e73f0f8ff52ef1ba82347d766ab335de908029.png">
 
 >- **Reload**<br>
 Reloads the current URL<br><img src="https://kodular-community.s3.dualstack.eu-west-1.amazonaws.com/original/3X/1/b/1be6643cfd756efdfde28f329c665c3d6427b946.png">
