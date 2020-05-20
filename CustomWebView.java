@@ -52,7 +52,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     public boolean AutoplayMedia = false;
     public boolean AutoLoadImages = true;
     public boolean BlockNetworkLoads = false;
-    public boolean FileAccess = false;
     public boolean ZoomDisplay = true;
     public boolean SupportZoom = true;
     public boolean scrollbar = true;
@@ -64,8 +63,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     public boolean prompt = true;
     public String UserAgent = "";
     public boolean DesktopMode = false;
-    public boolean ignoreSslErrors = true;
-    public boolean LoadLocalFiles = true;
+    public boolean ignoreSslErrors = false;
+    public boolean LoadLocalFiles = false;
     public boolean SupportMultipleWindows = true;
     WebViewInterface wvInterface;
     public String WebViewString ;
@@ -524,11 +523,13 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
     }
   @SimpleFunction(description="Reloads the current URL.")
    public void Reload(){
+        CancelJsRequests();
         webView.reload();
     }
     @SimpleFunction(description="Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html){
-        webView.loadDataWithBaseURL("",html,"text/html","UTF-8",null);
+        CancelJsRequests();
+        webView.loadData(html,"text/html", "UTF-8");
     }
   @SimpleFunction(description="Gets whether this WebView has a back history item.")
   public boolean CanGoBack(){
@@ -589,8 +590,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements A
 
 	@SimpleFunction(description="Loads the given URL.")
     public void GoToUrl(String url){
+            CancelJsRequests();
             webView.loadUrl(url);
-        }
+    }
 	@SimpleEvent(description="Event raised when page loading has finished.")
     public void PageLoaded(){
 	EventDispatcher.dispatchEvent(this, "PageLoaded");
@@ -736,7 +738,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
            }catch (Exception e){
                filePathCallback.onReceiveValue(null);
            }
-           return FileAccess;
+           return LoadLocalFiles;
        }
 
        @Override
@@ -861,7 +863,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
   public void OnJsAlert(String url,String message){
       EventDispatcher.dispatchEvent(this,"OnJsAlert",url,message);
     }
-  @SimpleEvent(description="Tell to display a confirm dialog to the user.")
+  @SimpleEvent(description="Tells to display a confirm dialog to the user.")
   public void OnJsConfirm(String url,String message){
       EventDispatcher.dispatchEvent(this,"OnJsConfirm",url,message);
     }
@@ -964,7 +966,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         EventDispatcher.dispatchEvent(this,"GotPrintResult",id,isCompleted,isFailed,isBlocked);
     }
     @SimpleFunction(description="Prints the content of webview with color mode(Use 2 for color scheme , 1 for monochrome scheme and 0 for default scheme. )")
-    public void PrintWebContent(int colorMode){
+    public void PrintWebContent(){
         boolean gotResult = false;
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
         PrintDocumentAdapter printDocumentAdapter = webView.createPrintDocumentAdapter(webView.getTitle());
@@ -991,5 +993,17 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
             gotResult = printJob.isStarted() || printJob.isBlocked() || printJob.isCancelled() || printJob.isCompleted() || printJob.isFailed();
         }
         GotPrintResult(printJob.toString(),printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
+    }
+	public void CancelJsRequests(){
+        if(jsAlert != null){
+            jsAlert.cancel();
+			jsAlert = null;
+        }else if (jsResult != null){
+            jsResult.cancel();
+			jsResult = null;
+        }else if (jsPromptResult != null){
+            jsPromptResult.cancel();
+			jsPromptResult = null;
+        }
     }
 }
