@@ -21,6 +21,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Event for permission(s) request
 - Grant permission(s) manually
 - Print web content
+- A wide range of tools for working with JavaScript
 
 ## Designer Properties
 
