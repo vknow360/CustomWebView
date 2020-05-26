@@ -22,7 +22,7 @@ import android.print.PrintDocumentAdapter;
 import android.print.PrintJob;
 import android.print.PrintManager;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.webkit.*;
 import android.widget.Toast;
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import android.view.MotionEvent;
 @DesignerComponent(version = 4, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
-@UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")})},name="com.sunny.CustomWebView.WebActivity")})
+@UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="com.sunny.CustomWebView.WebActivity")})
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE")
 public final class CustomWebView extends AndroidNonvisibleComponent{
@@ -192,9 +192,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public void WebviewVArrangement(HVArrangement container){
         if(NO_VIEW){
 		View v = container.getView();
-        ViewGroup vg = (ViewGroup) v.getParent();
-        vg.addView(webView,vg.indexOfChild(v),v.getLayoutParams());
-        vg.removeView(v);
+		FrameLayout frameLayout = (FrameLayout) v;
+        frameLayout.addView(webView,new FrameLayout.LayoutParams(-1,-1));
         NO_VIEW = false;
       }
   }
@@ -203,9 +202,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public void WebviewHArrangement(HVArrangement container){
         if(NO_VIEW){
         View v = container.getView();
-        ViewGroup vg = (ViewGroup) v.getParent();
-        vg.addView(webView,vg.indexOfChild(v),v.getLayoutParams());
-        vg.removeView(v);
+		FrameLayout frameLayout = (FrameLayout) v;
+        frameLayout.addView(webView,new FrameLayout.LayoutParams(-1,-1));
         NO_VIEW = false;
       }
 	}
@@ -213,9 +211,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public void CreateWebView(AndroidViewComponent container){
 		if(NO_VIEW){
         View v = container.getView();
-        ViewGroup vg = (ViewGroup) v.getParent();
-        vg.addView(webView,vg.indexOfChild(v),v.getLayoutParams());
-        vg.removeView(v);
+        FrameLayout frameLayout = (FrameLayout) v;
+        frameLayout.addView(webView,new FrameLayout.LayoutParams(-1,-1));
         NO_VIEW = false;
       }
   }
@@ -236,10 +233,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   @SimpleProperty(category = PropertyCategory.BEHAVIOR,description="Get webview string")
   public String WebViewString() {
     return wvInterface.webViewString;
-  }
-   @SimpleFunction(description="Returns the url which launched this activity")
-  public static String GetUrlToOpen() {
-    return url;
   }
 
   @SimpleProperty(description = "Get webview user agent",category = PropertyCategory.BEHAVIOR)
@@ -597,6 +590,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         webView.goForward();
 	  }
     }
+	@SimpleFunction(description="Returns the url which launched this activity")
+  public static String GetUrlToOpen() {
+    return url;
+  }
 	@SimpleFunction(description="Destroys the webview and removes it completely from view system")
 	public void DestroyWebView(){
         webView.destroy();
@@ -739,7 +736,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
   public void FileUploadNeeded(){
 	  EventDispatcher.dispatchEvent(this,"FileUploadNeeded");
   }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Uploads the given file from content uri")
   public void UploadFile(String contentUri){
 	  if(mFilePathCallback != null){
 		if(contentUri.isEmpty()){
