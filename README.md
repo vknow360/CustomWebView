@@ -22,8 +22,8 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Grant permission(s) manually
 - Print web content
 - A wide range of tools for working with JavaScript
-* Accepts external links
-* Download files using built-in download method
+- Accepts external links
+- Download files using built-in download method
 
 
 ### Reference Links
