@@ -50,15 +50,12 @@ import com.google.appinventor.components.annotations.DesignerProperty;
 import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import android.view.MotionEvent;
-@DesignerComponent(version = 4, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
+@DesignerComponent(version = 5, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
 @UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="com.sunny.CustomWebView.WebActivity")})
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE")
 public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean NO_VIEW = true;
-    private final int FILECHOOSER_REQUEST_CODE = 1008;
-	private final int INPUT_FILE_REQUEST_CODE = 1;
-    private final int FILECHOOSER_RESULTCODE = 1;
     public Activity activity;
     public WebView webView;
     public Context context;
@@ -93,12 +90,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean hasWriteAccess = false;
     public PermissionRequest permissionRequest;
     public PrintJob printJob;
-	public CookieManager cookieManager;
+	  public CookieManager cookieManager;
     public JsResult jsResult;
     public JsResult jsAlert;
     public HttpAuthHandler httpAuthHandler;
-	public static String url = "";
-	public boolean deepLinks = false;
+	  public static String url = "";
+	  public boolean deepLinks = false;
 	String jobName = "";
 
    public CustomWebView(ComponentContainer container) {
@@ -107,9 +104,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     	  context = (Context) activity;
     	  webView = new WebView(context);
     	  wvInterface = new WebViewInterface();
-		  cookieManager = CookieManager.getInstance();
-		  hasWriteAccess = context.checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,Process.myPid(),Process.myUid()) == 0;
-		  hasLocationAccess = context.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,Process.myPid(),Process.myUid()) == 0;
+		    cookieManager = CookieManager.getInstance();
+		    hasWriteAccess = context.checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,Process.myPid(),Process.myUid()) == 0;
+		    hasLocationAccess = context.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,Process.myPid(),Process.myUid()) == 0;
     	  webView.addJavascriptInterface(wvInterface, "AppInventor");
           webView.addJavascriptInterface(wvInterface, "Makeroid");
           webView.addJavascriptInterface(wvInterface, "Kodular");
@@ -150,11 +147,25 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 if (item == null){
                     item = "";
                 }
-                LongClicked(item,type);
-                return !LongClickable;
+                String str = "";
+                if (type == 8) {
+                  Message message = new Handler().obtainMessage();
+                  CustomWebView.this.webView.requestFocusNodeHref(message);
+                  str = (String)message.getData().get("url");
+                }
+                if (str == null) {
+                  str = "";
+                }
+                LongClicked(item,str,type);
+                return true;
             }
         });
-		
+		webView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View view, int i, int i1, int i2, int i3) {
+                OnScrollChanged(i,i1,i2,i3,webView.canScrollHorizontally(-1),webView.canScrollHorizontally(1));
+            }
+        });
         webView.setWebViewClient(new WebClient());
         webView.setWebChromeClient(new ChromeClient());
         webView.getSettings().setJavaScriptEnabled(Js);
@@ -371,7 +382,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
       defaultValue = "False")
   @SimpleProperty(description="Sets whether webview can access local files.Use this to enable file uploading and loading files using HTML")
   public void FileAccess(boolean follow) {
-    
+
         if (!hasWriteAccess){
             new Handler().post(new Runnable() {
                 @Override
@@ -436,7 +447,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public boolean IgnoreSslErrors() {
     return ignoreSslErrors;
   }
-  
+
   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
       defaultValue = "False")
   @SimpleProperty(description="Determine whether or not to ignore SSL errors. Set to true to ignore " +
@@ -642,7 +653,11 @@ EventDispatcher.dispatchEvent(this, "OnConsoleMessage",message,lineNumber,source
     }
 	@SimpleEvent(description="Event raised after evaluating Js with result.")
     public void AfterJavaScriptEvaluated(String result){
-EventDispatcher.dispatchEvent(this, "AfterJavaScriptEvaluated",result);
+      EventDispatcher.dispatchEvent(this, "AfterJavaScriptEvaluated",result);
+    }
+	@SimpleEvent(description="Event raised when webview gets scrolled")
+	public void OnScrollChanged(int scrollX,int scrollY,int oldScrollX,int oldScrollY,boolean canGoLeft,boolean canGoRight){
+		EventDispatcher.dispatchEvent(this,"OnScrollChanged",scrollX,scrollY,oldScrollX,oldScrollY,canGoLeft,canGoRight);
     }
 
 	@SimpleFunction(description="Clears the highlighting surrounding text matches.")
@@ -650,14 +665,31 @@ EventDispatcher.dispatchEvent(this, "AfterJavaScriptEvaluated",result);
         webView.clearMatches();
     }
 	@SimpleEvent(description="Event raised when something is long clicked in webview with item(image,string,empty,etc) and type(item type like 0,1,8,etc)")
-	public void LongClicked(String item,int type){
-EventDispatcher.dispatchEvent(this, "LongClicked",item,type);
+	public void LongClicked(String item,String secondaryUrl,int type){
+    EventDispatcher.dispatchEvent(this, "LongClicked",item,secondaryUrl,type);
+  }
+    @SimpleFunction(description="Scrolls the webview to given position")
+    public void ScrollTo(final int x,final int y){
+        webView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                webView.scrollTo(x,y);
+            }
+        },300);
+    }
+    @SimpleFunction(description="Return the scrolled left position of the webview")
+    public int GetScrollX(){
+        return webView.getScrollX();
+    }
+    @SimpleFunction(description="Return the scrolled top position of the webview")
+    public int GetScrollY(){
+        return webView.getScrollY();
     }
 	@SimpleEvent(description="Event raised when any error is received during loading url and returns message,error code and failing url")
 	public void OnErrorReceived(String message,int errorCode,String url){
 EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
     }
-	
+
 
     public class WebClient extends WebViewClient{
        @Override
@@ -688,6 +720,9 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
        @Override
        public void onPageFinished(WebView view, String url) {
            PageLoaded();
+           if(DesktopMode){
+             webView.zoomOut();
+           }
        }
 
        @Override
@@ -736,7 +771,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
   public void FileUploadNeeded(){
 	  EventDispatcher.dispatchEvent(this,"FileUploadNeeded");
   }
-  @SimpleFunction(description="Uploads the given file from content uri")
+  @SimpleFunction(description="Uploads the given file from content uri.Use empty string to cancel the upload request.")
   public void UploadFile(String contentUri){
 	  if(mFilePathCallback != null){
 		if(contentUri.isEmpty()){
