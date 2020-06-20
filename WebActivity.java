@@ -11,14 +11,11 @@ public class WebActivity extends Activity{
         if (getIntent() != null){
             Uri uri = getIntent().getData();
             if (uri != null){
-				CustomWebView.url = uri.toString();
-				//String url = '"' + uri.toString() + '"';
-				PackageManager packageManager = getPackageManager();
-                //Intent launch = new Intent();
-				//launch.setClassName((Context)this, getPackageName() + "." + "Screen1");
-				//launch.putExtra("APP_INVENTOR_START",url);
-				startActivity(packageManager.getLaunchIntentForPackage(getPackageName()));
-				finish();
+							PackageManager packageManager = getPackageManager();
+        			Intent intent = packageManager.getLaunchIntentForPackage(getPackageName());
+							intent.putExtra("APP_INVENTOR_START",'"'+uri.toString()+'"');
+        			startActivity(intent);
+							finish();
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.sunny.CustomWebView;
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
@@ -17,7 +16,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Process;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintJob;
@@ -27,7 +25,6 @@ import android.view.ViewGroup;
 import android.webkit.*;
 import android.widget.FrameLayout;
 import java.util.*;
-import java.text.SimpleDateFormat;
 import com.google.appinventor.components.annotations.DesignerComponent;
 import com.google.appinventor.components.annotations.SimpleFunction;
 import com.google.appinventor.components.annotations.SimpleObject;
@@ -58,7 +55,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public Activity activity;
     public WebView webView;
     public Context context;
-    public boolean Js = true;
+    /*public boolean Js = true;
     public boolean AutoplayMedia = false;
     public boolean AutoLoadImages = true;
     public boolean BlockNetworkLoads = false;
@@ -66,20 +63,20 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean SupportZoom = true;
     public boolean scrollbar = true;
     public int ZoomPercent = 100;
-    public int FontSize = 16;
+    public int FontSize = 16;*/
     public boolean UsesLocation = false;
-    public boolean LongClickable =true;
+    /*public boolean LongClickable =true;*/
     public boolean followLinks = true;
     public boolean prompt = true;
     public String UserAgent = "";
-    public boolean DesktopMode = false;
+    //public boolean DesktopMode = false;
     public boolean ignoreSslErrors = false;
-    public boolean LoadLocalFiles = false;
-    public boolean SupportMultipleWindows = true;
+    /*public boolean LoadLocalFiles = false;
+    public boolean SupportMultipleWindows = true;*/
     WebViewInterface wvInterface;
-    public String WebViewString ;
-    public boolean UseWideViewPort = true;
-    public boolean LoadWithOverviewMode = true;
+    public String WebViewString;
+    /*public boolean UseWideViewPort = true;
+    public boolean LoadWithOverviewMode = true;*/
     public JsPromptResult jsPromptResult ;
     private String MOBILE_USER_AGENT = "";
     private ValueCallback<Uri[]> mFilePathCallback;
@@ -93,7 +90,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public JsResult jsResult;
     public JsResult jsAlert;
     public HttpAuthHandler httpAuthHandler;
-	  public static String url = "";
 	  public boolean deepLinks = false;
 	  String jobName = "";
     public boolean isLoading = false;
@@ -104,58 +100,50 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     	  context = (Context) activity;
     	  wvInterface = new WebViewInterface();
 		    cookieManager = CookieManager.getInstance();
-		    hasWriteAccess = context.checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,Process.myPid(),Process.myUid()) == 0;
-		    hasLocationAccess = context.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,Process.myPid(),Process.myUid()) == 0;
+		    hasWriteAccess = context.checkCallingOrSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == 0;
+		    hasLocationAccess = context.checkCallingOrSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == 0;
   }
-  @SimpleFunction(description="Arrangement to create webview with unique id")
+  @SimpleFunction(description="Creates the webview in given arrangement with id")
   public void CreateWebView(AndroidViewComponent container,int id){
-		if(NO_VIEW && container != null){
+		if(!(wv.containsKey(id) && container == null)){
         View v = container.getView();
         if(!wv.containsKey(id)) {
             WebView w = new WebView(context);
+            resetWebView(w);
             FrameLayout frameLayout = (FrameLayout) v;
             frameLayout.addView(w, new FrameLayout.LayoutParams(-1, -1));
             wv.put(id, w);
-            if (webView == null) {
-              webView = w;
-			  resetWebViewClient();
-            }
         }
       }
   }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Set specific webview to current webview by id")
   public void SetWebView(int id){
         if (wv.containsKey(id)) {
             webView = wv.get(id);
-			resetWebViewClient();
             webView.setVisibility(View.VISIBLE);
-            for (int i : GetIds()) {
-                if (i != id) {
-                    wv.get(i).setVisibility(View.GONE);
-                }
-            }
         }
     }
-	    public void resetWebViewClient(){
-        webView.addJavascriptInterface(wvInterface, "AppInventor");
-        webView.addJavascriptInterface(wvInterface, "Makeroid");
-        webView.addJavascriptInterface(wvInterface, "Kodular");
-        MOBILE_USER_AGENT = webView.getSettings().getUserAgentString();
-        webView.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING);
-        webView.setFocusable(true);
-        webView.setDownloadListener(new DownloadListener() {
+	    public void resetWebView(WebView web){
+        web.addJavascriptInterface(wvInterface, "AppInventor");
+        web.addJavascriptInterface(wvInterface, "Makeroid");
+        web.addJavascriptInterface(wvInterface, "Kodular");
+        MOBILE_USER_AGENT = web.getSettings().getUserAgentString();
+        web.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING);
+        web.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+        web.setFocusable(true);
+        web.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String s, String s1, String s2, String s3, long l) {
                 OnDownloadNeeded(s,s2,s3,l);
             }
         });
-        webView.setFindListener(new WebView.FindListener() {
+        web.setFindListener(new WebView.FindListener() {
             @Override
             public void onFindResultReceived(int i, int i1, boolean b) {
                 FindResultReceived(i,i1,b);
             }
         });
-        webView.setOnTouchListener(new View.OnTouchListener() {
+        web.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
@@ -169,7 +157,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 return false;
             }
         });
-        webView.setOnLongClickListener(new View.OnLongClickListener() {
+        web.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 final WebView.HitTestResult hitTestResult = webView.getHitTestResult();
@@ -191,36 +179,45 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 return true;
             }
         });
-        webView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+        web.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
                 OnScrollChanged(i,i1,i2,i3,webView.canScrollHorizontally(-1),webView.canScrollHorizontally(1));
             }
         });
-        webView.setWebViewClient(new WebClient());
-        webView.setWebChromeClient(new ChromeClient());
-        EnableJS(Js);
-        DisplayZoom(ZoomDisplay);
-        FileAccess(LoadLocalFiles);
-        ZoomEnabled(SupportZoom);
-        LongClickable(LongClickable);
-        ZoomPercent(ZoomPercent);
-        cookieManager.setAcceptThirdPartyCookies(webView,true);
-        webView.getSettings().setDomStorageEnabled(true);
-        Scrollbar(scrollbar);
-        FontSize(FontSize);
-        AutoLoadImages(AutoLoadImages);
-        LoadWithOverviewMode(LoadWithOverviewMode);
-        UseWideViewPort(UseWideViewPort);
-        BlockNetworkLoads(BlockNetworkLoads);
-        AutoplayMedia(AutoplayMedia);
-        SupportMultipleWindows(SupportMultipleWindows);
-        UsesLocation(UsesLocation);
+        web.setWebViewClient(new WebClient());
+        web.setWebChromeClient(new ChromeClient());
+        web.getSettings().setJavaScriptEnabled(true);
+        web.getSettings().setDisplayZoomControls(true);
+        web.getSettings().setAllowFileAccess(false);
+        web.getSettings().setAllowFileAccessFromFileURLs(false);
+        web.getSettings().setAllowUniversalAccessFromFileURLs(false);
+        web.getSettings().setAllowContentAccess(false);
+        web.getSettings().setBuiltInZoomControls(true);
+        web.getSettings().setSupportZoom(true);
+        web.setLongClickable(true);
+        web.getSettings().setTextZoom(100);
+        cookieManager.setAcceptThirdPartyCookies(web,true);
+        web.getSettings().setDomStorageEnabled(true);
+        web.setVerticalScrollBarEnabled(true);
+        web.setHorizontalScrollBarEnabled(true);
+        web.getSettings().setDefaultFontSize(16);
+        web.getSettings().setBlockNetworkImage(false);
+        web.getSettings().setLoadsImagesAutomatically(true);
+        web.getSettings().setLoadWithOverviewMode(true);
+        web.getSettings().setUseWideViewPort(true);
+        web.getSettings().setBlockNetworkLoads(false);
+        web.getSettings().setMediaPlaybackRequiresUserGesture(false);
+        web.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+        web.getSettings().setSupportMultipleWindows(true);
+        web.getSettings().setGeolocationDatabasePath(null);
+        web.getSettings().setDatabaseEnabled(false);
+        web.getSettings().setGeolocationEnabled(false);
         UserAgent = MOBILE_USER_AGENT;
-        UserAgent(UserAgent);
+        web.getSettings().setUserAgentString(UserAgent);
     }
 
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Returns a list of used ids")
   public List<Integer> GetIds(){
         return new ArrayList<>(wv.keySet());
     }
@@ -228,19 +225,20 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public void WebViewString(String newString) {
     wvInterface.setWebViewStringFromBlocks(newString);
   }
-    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
-  @SimpleProperty(description="Sets the visibility of webview")
+  @SimpleProperty(description="Returns the visibility of current webview")
   public boolean Visible(){
-        return webView.getVisibility() == View.VISIBLE;
+    if (webView != null) {
+      return webView.getVisibility() == View.VISIBLE;
     }
-	@SimpleProperty(description="Returns the visibility of webview")
-  public void Visible(boolean visibility){
-        if (webView != null){
+      return false;
+    }
+	@SimpleFunction(description="Sets the visibility of webview by id")
+  public void SetVisibility(int id,boolean visibility){
+        if (wv.containsKey(id)){
             if (visibility) {
-                webView.setVisibility(View.VISIBLE);
+                wv.get(id).setVisibility(View.VISIBLE);
             } else {
-                webView.setVisibility(View.GONE);
+                wv.get(id).setVisibility(View.GONE);
             }
         }
     }
@@ -253,8 +251,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public String UserAgent() {
     return UserAgent;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING,
-      defaultValue = "")
   @SimpleProperty(description="Sets the WebView's user-agent string. If the string is null or empty, the system default value will be used. ")
   public void UserAgent(String userAgent) {
 	  if(!userAgent.isEmpty()){
@@ -262,20 +258,26 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 	  }else{
 		  UserAgent = MOBILE_USER_AGENT;
 	  }
-	webView.getSettings().setUserAgentString(UserAgent);
+    if (webView != null) {
+      webView.getSettings().setUserAgentString(UserAgent);
+    }
   }
 
   @SimpleProperty(
       description = "URL of the page currently viewed",
       category = PropertyCategory.BEHAVIOR)
   public String CurrentUrl() {
-    return (webView.getUrl() == null) ? "" : webView.getUrl();
+    if (webView != null) {
+      return (webView.getUrl() == null) ? "" : webView.getUrl();
+    }
+    return "";
   }
-  @SimpleProperty(
-      description = "Title of the page currently viewed",
-      category = PropertyCategory.BEHAVIOR)
+  @SimpleProperty(description = "Title of the page currently viewed",category = PropertyCategory.BEHAVIOR)
   public String CurrentPageTitle() {
-    return (webView.getTitle() == null) ? "" : webView.getTitle();
+    if (webView != null) {
+      return (webView.getTitle() == null) ? "" : webView.getTitle();
+    }
+    return "";
   }
   @SimpleProperty(
       description = "Determines whether to follow links when they are tapped in the WebViewer.  " +
@@ -284,8 +286,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public boolean FollowLinks() {
     return followLinks;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "False")
   @SimpleProperty(description="Sets whether to enable deep links or not")
   public void DeepLinks(boolean follow) {
     deepLinks = follow;
@@ -294,96 +294,102 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public boolean DeepLinks() {
 	return deepLinks;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue = "True")
   @SimpleProperty(description="Sets whether to follow links or not")
   public void FollowLinks(boolean follow) {
     followLinks = follow;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "False")
   @SimpleProperty(description="Sets whether the WebView requires a user gesture to play media")
-  public void AutoplayMedia(boolean follow) {
-    AutoplayMedia = follow;
-    webView.getSettings().setMediaPlaybackRequiresUserGesture(AutoplayMedia);
+  public void AutoplayMedia(boolean bool) {
+    if (webView != null) {
+      webView.getSettings().setMediaPlaybackRequiresUserGesture(bool);
+    }
   }
   @SimpleProperty(description="Returns whether the WebView requires a user gesture to play media")
   public boolean AutoplayMedia() {
-    return AutoplayMedia;
+    if (webView != null) {
+      webView.getSettings().getMediaPlaybackRequiresUserGesture();
+    }
+    return false;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
   @SimpleProperty(description="Sets whether the WebView should support zooming using its on-screen zoom controls and gestures")
-  public void ZoomEnabled(boolean follow) {
-    SupportZoom = follow;
-    webView.getSettings().setBuiltInZoomControls(SupportZoom);
-    webView.getSettings().setSupportZoom(SupportZoom);
+  public void ZoomEnabled(boolean bool) {
+    if (webView != null) {
+      webView.getSettings().setBuiltInZoomControls(bool);
+      webView.getSettings().setSupportZoom(bool);
+    }
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
   @SimpleProperty(description="Sets whether the WebView should load image resources")
-  public void AutoLoadImages(boolean follow) {
-    AutoLoadImages = follow;
-    webView.getSettings().setBlockNetworkImage(!AutoLoadImages);
-    webView.getSettings().setLoadsImagesAutomatically(AutoLoadImages);
+  public void AutoLoadImages(boolean bool) {
+    if (webView != null) {
+      webView.getSettings().setBlockNetworkImage(!bool);
+      webView.getSettings().setLoadsImagesAutomatically(bool);
+    }
   }
   @SimpleProperty(description="Returnss whether the WebView should load image resources")
   public boolean AutoLoadImages() {
-    return AutoLoadImages;
+    if (webView != null) {
+      return webView.getSettings().getLoadsImagesAutomatically();
+    }
+    return true;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
   @SimpleProperty(description="Sets whether the WebView should display on-screen zoom controls")
-  public void DisplayZoom(boolean follow) {
-    ZoomDisplay = follow;
-    webView.getSettings().setDisplayZoomControls(ZoomDisplay);
+  public void DisplayZoom(boolean bool) {
+    if (webView != null) {
+      webView.getSettings().setDisplayZoomControls(bool);
+    }
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_INTEGER,
-      defaultValue = "100")
   @SimpleProperty(description="Sets the zoom of the page in percent. The default is 100")
-  public void ZoomPercent(int follow) {
-    ZoomPercent = follow;
-    webView.getSettings().setTextZoom(ZoomPercent);
+  public void ZoomPercent(int zoom) {
+    if (webView != null) {
+      webView.getSettings().setTextZoom(zoom);
+    }
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_INTEGER,
-      defaultValue = "16")
   @SimpleProperty(description="Sets the default font size of text. The default is 16.")
-  public void FontSize(int follow) {
-    FontSize = follow;
-    webView.getSettings().setDefaultFontSize(FontSize);
+  public void FontSize(int size) {
+    if (webView != null) {
+      webView.getSettings().setDefaultFontSize(size);
+    }
   }
   @SimpleProperty(description="Returns the font size of text")
   public int FontSize() {
-    return FontSize;
+    if (webView != null) {
+      return webView.getSettings().getDefaultFontSize();
+    }
+    return 16;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "False")
   @SimpleProperty(description="Sets whether to load content in desktop mode")
   public void DesktopMode(boolean mode) {
-    DesktopMode = mode;
-    if(mode){
-        UserAgent = UserAgent.replace("Android","diordnA").replace("Mobile","eliboM");
-    }else{
-        UserAgent = UserAgent.replace("diordnA","Android").replace("eliboM","Mobile");
+    if (webView != null) {
+      if(mode){
+          UserAgent = UserAgent.replace("Android","diordnA").replace("Mobile","eliboM");
+      }else{
+          UserAgent = UserAgent.replace("diordnA","Android").replace("eliboM","Mobile");
+      }
+      webView.getSettings().setUserAgentString(UserAgent);
     }
-    webView.getSettings().setUserAgentString(UserAgent);
   }
   @SimpleProperty(description="Returns whether to load content in desktop mode")
   public boolean DesktopMode() {
-    return DesktopMode;
+    if (webView != null) {
+      String ua = webView.getSettings().getUserAgentString();
+      if (ua.contains("diordnA") && ua.contains("eliboM")) {
+        return true;
+      }
+      return false;
+    }
+    return false;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
   @SimpleProperty(description="Sets whether to enable text selection and context menu")
-  public void LongClickable(boolean follow) {
-    LongClickable = follow;
-    webView.setLongClickable(LongClickable);
+  public void LongClickable(boolean bool) {
+    if (webView != null) {
+      webView.setLongClickable(bool);
+    }
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "False")
   @SimpleProperty(description="Sets whether webview can access local files.Use this to enable file uploading and loading files using HTML")
-  public void FileAccess(boolean follow) {
-        if (!hasWriteAccess){
+  public void FileAccess(boolean allowfiles) {
+    if (webView != null) {
+      if (allowfiles && !hasWriteAccess) {
             new Handler().post(new Runnable() {
                 @Override
                 public void run() {
@@ -396,123 +402,133 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                     });
                 }
             });
-		}
-		LoadLocalFiles = follow;
-            if (hasWriteAccess){
-                webView.getSettings().setAllowFileAccess(LoadLocalFiles);
-                webView.getSettings().setAllowFileAccessFromFileURLs(LoadLocalFiles);
-                webView.getSettings().setAllowUniversalAccessFromFileURLs(LoadLocalFiles);
-                webView.getSettings().setAllowContentAccess(LoadLocalFiles);
-            }else{
-                webView.getSettings().setAllowFileAccess(false);
-                webView.getSettings().setAllowFileAccessFromFileURLs(false);
-                webView.getSettings().setAllowUniversalAccessFromFileURLs(false);
-                webView.getSettings().setAllowContentAccess(false);
-            }
+          }
+          if (allowfiles && hasWriteAccess){
+              webView.getSettings().setAllowFileAccess(true);
+              webView.getSettings().setAllowFileAccessFromFileURLs(true);
+              webView.getSettings().setAllowUniversalAccessFromFileURLs(true);
+              webView.getSettings().setAllowContentAccess(true);
+          }else{
+            webView.getSettings().setAllowFileAccess(false);
+            webView.getSettings().setAllowFileAccessFromFileURLs(false);
+            webView.getSettings().setAllowUniversalAccessFromFileURLs(false);
+            webView.getSettings().setAllowContentAccess(false);
+          }
+    }
   }
   @SimpleProperty(description="Returns whether webview can access local files")
   public boolean FileAccess() {
-    return LoadLocalFiles;
+    if (webView != null) {
+      return webView.getSettings().getAllowFileAccess();
+    }
+    return false;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
   @SimpleProperty(description="Sets whether the WebView supports multiple windows")
-  public void SupportMultipleWindows(boolean follow) {
-    SupportMultipleWindows = follow;
-    webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(SupportMultipleWindows);
-    webView.getSettings().setSupportMultipleWindows(SupportMultipleWindows);
+  public void SupportMultipleWindows(boolean support) {
+    if (webView != null) {
+      webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(support);
+      webView.getSettings().setSupportMultipleWindows(support);
+    }
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "False")
   @SimpleProperty(description="Sets whether the WebView should not load resources from the network.Use this to save data.")
-  public void BlockNetworkLoads(boolean follow) {
-    BlockNetworkLoads = follow;
-    webView.getSettings().setBlockNetworkLoads(BlockNetworkLoads);
+  public void BlockNetworkLoads(boolean block) {
+    if (webView != null) {
+      webView.getSettings().setBlockNetworkLoads(block);
+    }
   }
   @SimpleProperty(description="Returns whether the WebView should not load resources from the network")
   public boolean BlockNetworkLoads() {
-    return BlockNetworkLoads;
+    if (webView != null) {
+      return webView.getSettings().getBlockNetworkLoads();
+    }
+    return false;
   }
   @SimpleProperty(description="Returns whether the WebView supports multiple windows")
   public boolean SupportMultipleWindows() {
-    return SupportMultipleWindows;
+    if (webView != null) {
+      return webView.getSettings().getJavaScriptCanOpenWindowsAutomatically();
+    }
+    return true;
   }
-  @SimpleProperty(description="Gets wether text selection and context menu are enabled")
-  public boolean LongClickable() {
-    return LongClickable;
-  }
-  @SimpleProperty(
-      description = "Returns whether webview ignores SSL errors",
-      category = PropertyCategory.BEHAVIOR)
+
+  @SimpleProperty(description = "Returns whether webview ignores SSL errors",category = PropertyCategory.BEHAVIOR)
   public boolean IgnoreSslErrors() {
     return ignoreSslErrors;
   }
-
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "False")
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue = "False")
   @SimpleProperty(description="Determine whether or not to ignore SSL errors. Set to true to ignore " +
   "errors. Use this to accept self signed certificates from websites")
   public void IgnoreSslErrors(boolean ignoreSslErrors) {
     ignoreSslErrors = ignoreSslErrors;
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
+
   @SimpleProperty(description="Sets whether the WebView loads pages in overview mode, that is, zooms out the content to fit on screen by width. This setting is taken into account when the content width is greater than the width of the WebView control.")
-  public void LoadWithOverviewMode(boolean ignoreSslErrors) {
-    LoadWithOverviewMode = ignoreSslErrors;
-    webView.getSettings().setLoadWithOverviewMode(LoadWithOverviewMode);
+  public void LoadWithOverviewMode(boolean bool) {
+    if (webView != null) {
+      webView.getSettings().setLoadWithOverviewMode(bool);
+    }
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
+
   @SimpleProperty(description="Sets whether the WebView should enable support for the 'viewport' HTML meta tag or should use a wide viewport.")
-  public void UseWideViewPort(boolean ignoreSslErrors) {
-    UseWideViewPort = ignoreSslErrors;
-    webView.getSettings().setUseWideViewPort(UseWideViewPort);
+  public void UseWideViewPort(boolean bool) {
+    if (webView != null) {
+      webView.getSettings().setUseWideViewPort(bool);
+    }
   }
   @SimpleProperty(description="Returns whether the WebView loads pages in overview mode")
   public boolean LoadWithOverviewMode() {
-    return LoadWithOverviewMode;
+    if (webView != null) {
+      return webView.getSettings().getLoadWithOverviewMode();
+    }
+    return true;
   }
   @SimpleProperty(description="Returns whether the WebView should enable support for the 'viewport' HTML meta tag or should use a wide viewport.")
   public boolean UseWideViewPort() {
-    return UseWideViewPort;
+    if (webView != null) {
+      return webView.getSettings().getUseWideViewPort();
+    }
+    return true;
   }
-  @DesignerProperty(editorType= PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue="True")
   @SimpleProperty(description="Tells the WebView to enable JavaScript execution.")
   public void EnableJS(boolean js) {
-    Js = js;
-    webView.getSettings().setJavaScriptEnabled(Js);
+    if (webView != null) {
+      webView.getSettings().setJavaScriptEnabled(js);
+    }
   }
   @SimpleProperty(description="Returns whether webview supports JavaScript execution")
   public boolean EnableJS() {
-    return Js;
+    if (webView != null) {
+      return webView.getSettings().getJavaScriptEnabled();
+    }
+    return true;
   }
-   @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "False")
-  @SimpleProperty(userVisible = false,
-      description = "Whether or not to give the application permission to use the Javascript geolocation API")
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue = "False")
+  @SimpleProperty(description = "Whether or not to give the application permission to use the Javascript geolocation API")
   public void UsesLocation(boolean uses) {
-    UsesLocation = uses;
-    if (!hasLocationAccess){
-        new Handler().post(new Runnable() {
-            @Override
-            public void run() {
-        form.askPermission(Manifest.permission.ACCESS_FINE_LOCATION,
-                new PermissionResultHandler() {
-                    @Override
-                    public void HandlePermissionResponse(String permission, boolean granted) {
-                        hasLocationAccess = granted;
-                    }
-                });
-            }
-        });
-        if (hasLocationAccess){
-            webView.getSettings().setGeolocationDatabasePath(activity.getFilesDir().getAbsolutePath());
-            webView.getSettings().setDatabaseEnabled(true);
+    if (webView != null) {
+      if (uses && !hasLocationAccess) {
+            new Handler().post(new Runnable() {
+                @Override
+                public void run() {
+            form.askPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                    new PermissionResultHandler() {
+                        @Override
+                        public void HandlePermissionResponse(String permission, boolean granted) {
+                            hasLocationAccess = granted;
+                        }
+                    });
+                }
+            });
+          }
+        if (uses && hasLocationAccess){
+          webView.getSettings().setGeolocationEnabled(true);
+          webView.getSettings().setGeolocationDatabasePath(activity.getFilesDir().getAbsolutePath());
+          webView.getSettings().setDatabaseEnabled(true);
         }else{
-            webView.getSettings().setDatabaseEnabled(false);
+          webView.getSettings().setGeolocationEnabled(false);
+          webView.getSettings().setGeolocationDatabasePath(null);
+          webView.getSettings().setDatabaseEnabled(false);
         }
-        webView.getSettings().setGeolocationEnabled(UsesLocation);
     }
   }
   @SimpleProperty(description = "Returns whether webview will prompt for permission and raise 'OnPermissionRequest' event or not")
@@ -520,22 +536,23 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     return prompt;
   }
 
-  @DesignerProperty(defaultValue = "True", editorType = "boolean")
   @SimpleProperty(description = "Whether to display horizonatal and vertical scrollbars or not")
-  public void Scrollbar(boolean paramBoolean) {
-    scrollbar = paramBoolean;
-    webView.setVerticalScrollBarEnabled(scrollbar);
-    webView.setHorizontalScrollBarEnabled(scrollbar);
+  public void Scrollbar(boolean bool) {
+    if (webView != null) {
+      webView.setVerticalScrollBarEnabled(bool);
+      webView.setHorizontalScrollBarEnabled(bool);
+    }
   }
-  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-      defaultValue = "True")
-  @SimpleProperty(userVisible = true,description="Sets whether webview will prompt for permission and raise 'OnPermissionRequest' event or not else assume permission is granted.")
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue = "True")
+  @SimpleProperty(description="Sets whether webview will prompt for permission and raise 'OnPermissionRequest' event or not else assume permission is granted.")
   public void PromptForPermission(boolean prompt) {
     prompt = prompt;
   }
   @SimpleProperty(userVisible = true,description="Sets background color of webview")
   public void BackgroundColor(int bgColor) {
-    webView.setBackgroundColor(bgColor);
+    if (webView != null) {
+      webView.setBackgroundColor(bgColor);
+    }
   }
 @SimpleEvent(description = "When the JavaScript calls AppInventor.setWebViewString this event is run.")
   public void WebViewStringChange(String value) {
@@ -548,7 +565,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   @SimpleFunction(description="Reloads the current URL.")
    public void Reload(){
         CancelJsRequests();
-        webView.reload();
+        if (webView != null) {
+          webView.reload();
+        }
     }
     @SimpleFunction(description="Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html){
@@ -557,11 +576,17 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
   @SimpleFunction(description="Gets whether this WebView has a back history item.")
   public boolean CanGoBack(){
+      if (webView != null) {
         return webView.canGoBack();
+      }
+      return false;
     }
   @SimpleFunction(description="Gets whether this WebView has a forward history item.")
   public boolean CanGoForward(){
-        return webView.canGoForward();
+    if (webView != null) {
+      return webView.canGoForward();
+    }
+      return false;
     }
   @SimpleFunction(description="Removes all cookies and raises 'CookiesRemoved' event")
   public void ClearCookies(){
@@ -572,8 +597,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             }
         });
         cookieManager.flush();
-        return;
-}
+  }
 
    @SimpleEvent(description="Event raised after 'ClearCokies' method with result")
    public void CookiesRemoved(boolean successful){
@@ -581,28 +605,28 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
   @SimpleFunction(description="Clears the resource cache.")
   public void ClearCache(){
+      if (webView != null) {
         webView.clearCache(true);
+      }
     }
   @SimpleFunction(description="Tells this WebView to clear its internal back/forward list.")
   public void ClearInternalHistory(){
-        webView.clearHistory();
+    if (webView != null) {
+      webView.clearHistory();
     }
+  }
   @SimpleFunction(description="Goes back in the history of this WebView.")
   public void GoBack(){
 	  if(CanGoBack()){
         webView.goBack();
 	  }
-    }
+  }
   @SimpleFunction(description="Goes forward in the history of this WebView.")
   public void GoForward(){
-	  if(CanGoForward()){
-        webView.goForward();
-	  }
+	     if(CanGoForward()){
+         webView.goForward();
+	     }
     }
-	@SimpleFunction(description="Returns the url which launched this activity")
-  public static String GetUrlToOpen() {
-    return url;
-  }
 	@SimpleFunction(description="Destroys the webview and removes it completely from view system")
   public void RemoveWebView(int id){
         if (wv.containsKey(id)){
@@ -614,7 +638,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
   @SimpleFunction(description="Gets whether the page can go back or forward the given number of steps.")
   public boolean CanGoBackOrForward(int steps){
-        return webView.canGoBackOrForward(steps);
+    if (webView != null) {
+      return webView.canGoBackOrForward(steps);
+    }
+      return false;
     }
   @SimpleFunction(description="Goes to the history item that is the number of steps away from the current item. Steps is negative if backward and positive if forward.")
   public void GoBackOrForward(int steps){
@@ -626,7 +653,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 	@SimpleFunction(description="Loads the given URL.")
     public void GoToUrl(String url){
             CancelJsRequests();
-            webView.loadUrl(url);
+            if (webView != null) {
+              webView.loadUrl(url);
+            }
     }
 	@SimpleEvent(description="Event raised when page loading has finished.")
     public void PageLoaded(){
@@ -647,12 +676,14 @@ EventDispatcher.dispatchEvent(this, "OnConsoleMessage",message,lineNumber,source
 
 	@SimpleFunction(description="Asynchronously evaluates JavaScript in the context of the currently displayed page.")
     public void EvaluateJavaScript(String script){
-            webView.evaluateJavascript(script, new ValueCallback<String>() {
-                @Override
-                public void onReceiveValue(String s) {
-                    AfterJavaScriptEvaluated(s);
-                }
-            });
+      if (webView != null) {
+        webView.evaluateJavascript(script, new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String s) {
+                AfterJavaScriptEvaluated(s);
+            }
+        });
+      }
     }
 	@SimpleEvent(description="Event raised after evaluating Js with result.")
     public void AfterJavaScriptEvaluated(String result){
@@ -665,28 +696,38 @@ EventDispatcher.dispatchEvent(this, "OnConsoleMessage",message,lineNumber,source
 
 	@SimpleFunction(description="Clears the highlighting surrounding text matches.")
 	public void ClearMatches(){
-        webView.clearMatches();
+    if (webView != null) {
+      webView.clearMatches();
     }
+  }
 	@SimpleEvent(description="Event raised when something is long clicked in webview with item(image,string,empty,etc) and type(item type like 0,1,8,etc)")
 	public void LongClicked(String item,String secondaryUrl,int type){
     EventDispatcher.dispatchEvent(this, "LongClicked",item,secondaryUrl,type);
   }
     @SimpleFunction(description="Scrolls the webview to given position")
     public void ScrollTo(final int x,final int y){
+      if (webView != null) {
         webView.postDelayed(new Runnable() {
             @Override
             public void run() {
                 webView.scrollTo(x,y);
             }
         },300);
+      }
     }
     @SimpleFunction(description="Return the scrolled left position of the webview")
     public int GetScrollX(){
+      if (webView != null) {
         return webView.getScrollX();
+      }
+        return 0;
     }
     @SimpleFunction(description="Return the scrolled top position of the webview")
     public int GetScrollY(){
+      if (webView != null) {
         return webView.getScrollY();
+      }
+        return 0;
     }
 	@SimpleEvent(description="Event raised when any error is received during loading url and returns message,error code and failing url")
 	public void OnErrorReceived(String message,int errorCode,String url){
@@ -694,7 +735,6 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
     }
 
     public class WebClient extends WebViewClient{
-        @SuppressWarnings("deprecation")
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.startsWith("http")){
@@ -704,7 +744,6 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
             }
             return false;
         }
-        @TargetApi(Build.VERSION_CODES.N)
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             String url1 = request.getUrl().toString();
@@ -826,6 +865,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
         @Override
         public void onShowCustomView(View paramView, CustomViewCallback paramCustomViewCallback) {
+          OnShowCustomView();
             if (mCustomView != null) {
                 onHideCustomView();
                 return;
@@ -860,6 +900,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
         @Override
         public void onHideCustomView() {
+            OnHideCustomView();
             ((FrameLayout) activity.getWindow().getDecorView()).removeView(mCustomView);
             mCustomView = null;
             activity.getWindow().getDecorView().setSystemUiVisibility(mOriginalSystemUiVisibility);
@@ -872,12 +913,12 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         @Override
         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
             FileUploadNeeded(fileChooserParams.getAcceptTypes()[0],fileChooserParams.isCaptureEnabled());
-            return LoadLocalFiles;
+            return FileAccess();
         }
 
         @Override
         public boolean onCreateWindow(WebView view,final boolean isDialog,final boolean isUserGesture, Message resultMsg) {
-            if (SupportMultipleWindows){
+            if (SupportMultipleWindows()){
                 final WebView mWebView = new WebView(context);
                 mWebView.setWebViewClient(new WebViewClient(){
                     @Override
@@ -891,7 +932,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
                 transport.setWebView(mWebView);
                 resultMsg.sendToTarget();
             }
-            return SupportMultipleWindows;
+            return SupportMultipleWindows();
         }
 
         @Override
@@ -921,21 +962,21 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
             jsPromptResult = result;
             OnJsPrompt(url,message,defaultValue);
-            return Js;
+            return EnableJS();
         }
 
         @Override
         public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
             OnJsAlert(url,message);
             jsAlert = result;
-            return Js;
+            return EnableJS();
         }
 
         @Override
         public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
             jsResult = result;
             OnJsConfirm(url,message);
-            return Js;
+            return EnableJS();
         }
     }
     @SimpleEvent(description="Event raised when resubmission of form is needed")
@@ -958,10 +999,20 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 	public void OnNewWindowRequest(String url,boolean isDialog,boolean isPopup){
 		EventDispatcher.dispatchEvent(this, "OnNewWindowRequest",url,isDialog,isPopup);
     }
-
+    @SimpleEvent(description="Event raised when current page enters in full screen mode")
+    public void OnShowCustomView(){
+      EventDispatcher.dispatchEvent(this,"OnShowCustomView");
+    }
+    @SimpleEvent(description="Event raised when current page exits from full screen mode")
+    public void OnHideCustomView(){
+      EventDispatcher.dispatchEvent(this,"OnHideCustomView");
+    }
 	@SimpleFunction(description="Gets height of HTML content")
 	public int ContentHeight(){
-        return webView.getContentHeight();
+    if (webView != null) {
+      return webView.getContentHeight();
+    }
+        return 0;
     }
 	@SimpleEvent(description="Event raised after getting SSL certificate of current displayed url/website with boolean 'isSecure' and Strings 'issuedBy','issuedTo' and 'validTill'.If 'isSecure' is false and other values are empty then assume that website is not secure")
 	 public void GotCertificate(boolean isSecure,String issuedBy,String issuedTo,String validTill){
@@ -1042,16 +1093,20 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
     }
 	@SimpleFunction(description="Finds all instances of find on the page and highlights them, asynchronously. Successive calls to this will cancel any pending searches.")
 	public void Find(String string){
-        webView.findAllAsync(string);
+    if (webView != null) {
+      webView.findAllAsync(string);
     }
+  }
 	@SimpleFunction(description="Get cookies for specific url")
 	public String GetCookies(String url){
         return CookieManager.getInstance().getCookie(url);
     }
 	@SimpleFunction(description="Highlights and scrolls to the next match if 'forward' is true else scrolls to previous match.")
 	public void FindNext(boolean forward){
-        webView.findNext(forward);
+    if (webView != null) {
+      webView.findNext(forward);
     }
+  }
 	public class WebViewInterface {
         String webViewString;
         WebViewInterface() {
@@ -1084,14 +1139,16 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
     }
     @SimpleFunction(description="Prints the content of webview with color mode(Use 2 for color scheme , 1 for monochrome scheme and 0 for default scheme. )")
    public void PrintWebContent(){
-        PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
-        jobName = context.getApplicationInfo().name + " Document";
-        PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
-        if(printManager != null){
-            printJob = printManager.print(jobName, printAdapter,
-                    new PrintAttributes.Builder().build());
-        }
-        GotPrintResult(jobName,printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
+     if (webView != null) {
+       PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
+       jobName = context.getApplicationInfo().name + " Document";
+       PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
+       if(printManager != null){
+           printJob = printManager.print(jobName, printAdapter,
+                   new PrintAttributes.Builder().build());
+       }
+       GotPrintResult(jobName,printJob.isCompleted(),printJob.isFailed(),printJob.isBlocked());
+     }
     }
     @SimpleFunction(description="Restarts current/previous print job. You can request restart of a failed print job.")
     public void RestartPrinting(){
@@ -1117,7 +1174,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 			mFilePathCallback.onReceiveValue(null);
 			mFilePathCallback = null;
 		}
-    }
+  }
 	@SimpleFunction(description= "Downloads the file from url")
 	public void Download(String url,String mimeType,String contentDisposition,String fileName,String downloadDir){
 		if (!hasWriteAccess){
@@ -1155,7 +1212,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
        DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         dm.enqueue(request);
 		}
-    }
+  }
     public boolean DeepLinkParser(String url){
         PackageManager packageManager = context.getPackageManager();
         Intent intent ;
