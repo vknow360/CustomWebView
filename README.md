@@ -23,6 +23,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Accepts external links
 - Download files using built-in download method
 - Scroll Changed event and function to scroll to particular position
+- Create and Remove webviews dynamically
 
 ### Reference Links
 1.WebView Docs (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)<br>
