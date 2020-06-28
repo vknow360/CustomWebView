@@ -1,6 +1,6 @@
 ## Introduction
 CustomWebView is an extended form of web viewer with more customization and flexibility (For MIT AI2 and its distros)<br>
-**Latest Version : 6**<br>
+**Latest Version : 7**<br>
 **Required Api : 21**
 
 ## Features
@@ -24,6 +24,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Download files using built-in download method
 - Scroll Changed event and function to scroll to particular position
 - Create and Remove webviews dynamically
+- Ad blocker 
 
 ### Reference Links
 1.WebView Docs (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)<br>
