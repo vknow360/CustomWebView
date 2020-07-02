@@ -44,7 +44,7 @@ import android.view.MotionEvent;
 @DesignerComponent(version = 7, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
 @UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="com.sunny.CustomWebView.WebActivity")})
 @SimpleObject(external=true)
-@UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE")
+@UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE")
 public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean NO_VIEW = true;
     public Activity activity;
@@ -77,6 +77,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 	  public boolean blockAds = false;
 	  public List<String> AD_HOSTS = new ArrayList<>();
     public int iD = 0;
+    public boolean longClickable = true;
+    public boolean desktopMode = false;
+    public int zoomPercent = 100;
+    public boolean zoomEnabled = true;
+    public boolean displayZoom = true;
    public CustomWebView(ComponentContainer container) {
     	  super(container.$form());
     	  activity = container.$context();
@@ -126,7 +131,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             iD = id;
         }
     }
-	    public void resetWebView(WebView web){
+	    public void resetWebView(final WebView web){
         web.addJavascriptInterface(wvInterface, "AppInventor");
         web.addJavascriptInterface(wvInterface, "Makeroid");
         web.addJavascriptInterface(wvInterface, "Kodular");
@@ -134,6 +139,36 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         web.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING);
         web.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
         web.setFocusable(true);
+        web.setWebViewClient(new WebClient());
+        web.setWebChromeClient(new ChromeClient());
+        web.getSettings().setJavaScriptEnabled(true);
+        web.getSettings().setDisplayZoomControls(displayZoom);
+        web.getSettings().setAllowFileAccess(false);
+        web.getSettings().setAllowFileAccessFromFileURLs(false);
+        web.getSettings().setAllowUniversalAccessFromFileURLs(false);
+        web.getSettings().setAllowContentAccess(false);
+        web.getSettings().setSupportZoom(zoomEnabled);
+        web.getSettings().setBuiltInZoomControls(zoomEnabled);
+        web.setLongClickable(longClickable);
+        web.getSettings().setTextZoom(zoomPercent);
+        cookieManager.setAcceptThirdPartyCookies(web,true);
+        web.getSettings().setDomStorageEnabled(true);
+        web.setVerticalScrollBarEnabled(true);
+        web.setHorizontalScrollBarEnabled(true);
+        web.getSettings().setDefaultFontSize(16);
+        web.getSettings().setBlockNetworkImage(false);
+        web.getSettings().setLoadsImagesAutomatically(true);
+        web.getSettings().setLoadWithOverviewMode(true);
+        web.getSettings().setUseWideViewPort(true);
+        web.getSettings().setBlockNetworkLoads(false);
+        web.getSettings().setMediaPlaybackRequiresUserGesture(false);
+        web.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+        web.getSettings().setSupportMultipleWindows(true);
+        web.getSettings().setGeolocationDatabasePath(null);
+        web.getSettings().setDatabaseEnabled(false);
+        web.getSettings().setGeolocationEnabled(false);
+        UserAgent = MOBILE_USER_AGENT;
+        web.getSettings().setUserAgentString(UserAgent);
         web.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String s, String s1, String s2, String s3, long l) {
@@ -163,7 +198,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         web.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                final WebView.HitTestResult hitTestResult = webView.getHitTestResult();
+                final WebView.HitTestResult hitTestResult = web.getHitTestResult();
                 String item = hitTestResult.getExtra();
                 int type = hitTestResult.getType();
                 if (item == null){
@@ -172,52 +207,22 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 String str = "";
                 if (type == 8) {
                     Message message = new Handler().obtainMessage();
-                    CustomWebView.this.webView.requestFocusNodeHref(message);
+                    web.requestFocusNodeHref(message);
                     str = (String)message.getData().get("url");
                 }
                 if (str == null) {
                     str = "";
                 }
                 LongClicked(item,str,type);
-                return true;
+                return !longClickable;
             }
         });
         web.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
-                OnScrollChanged(i,i1,i2,i3,webView.canScrollHorizontally(-1),webView.canScrollHorizontally(1));
+                OnScrollChanged(i,i1,i2,i3,web.canScrollHorizontally(-1),web.canScrollHorizontally(1));
             }
         });
-        web.setWebViewClient(new WebClient());
-        web.setWebChromeClient(new ChromeClient());
-        web.getSettings().setJavaScriptEnabled(true);
-        web.getSettings().setDisplayZoomControls(true);
-        web.getSettings().setAllowFileAccess(false);
-        web.getSettings().setAllowFileAccessFromFileURLs(false);
-        web.getSettings().setAllowUniversalAccessFromFileURLs(false);
-        web.getSettings().setAllowContentAccess(false);
-        web.getSettings().setBuiltInZoomControls(true);
-        web.getSettings().setSupportZoom(true);
-        web.setLongClickable(true);
-        web.getSettings().setTextZoom(100);
-        cookieManager.setAcceptThirdPartyCookies(web,true);
-        web.getSettings().setDomStorageEnabled(true);
-        web.setVerticalScrollBarEnabled(true);
-        web.setHorizontalScrollBarEnabled(true);
-        web.getSettings().setDefaultFontSize(16);
-        web.getSettings().setBlockNetworkImage(false);
-        web.getSettings().setLoadsImagesAutomatically(true);
-        web.getSettings().setLoadWithOverviewMode(true);
-        web.getSettings().setUseWideViewPort(true);
-        web.getSettings().setBlockNetworkLoads(false);
-        web.getSettings().setMediaPlaybackRequiresUserGesture(false);
-        web.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-        web.getSettings().setSupportMultipleWindows(true);
-        web.getSettings().setGeolocationDatabasePath(null);
-        web.getSettings().setDatabaseEnabled(false);
-        web.getSettings().setGeolocationEnabled(false);
-        UserAgent = MOBILE_USER_AGENT;
-        web.getSettings().setUserAgentString(UserAgent);
     }
 
   @SimpleFunction(description="Returns a list of used ids")
@@ -286,6 +291,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public boolean FollowLinks() {
     return followLinks;
   }
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue = "False")
   @SimpleProperty(description="Sets whether to enable deep links or not")
   public void DeepLinks(boolean follow) {
     deepLinks = follow;
@@ -322,12 +328,21 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     return false;
   }
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue = "True")
   @SimpleProperty(description="Sets whether the WebView should support zooming using its on-screen zoom controls and gestures")
   public void ZoomEnabled(boolean bool) {
-    if (webView != null) {
-      webView.getSettings().setBuiltInZoomControls(bool);
+      /*if(webView != null) {
       webView.getSettings().setSupportZoom(bool);
-    }
+      webView.getSettings().setBuiltInZoomControls(bool);
+    }*/
+    zoomEnabled = bool;
+  }
+  @SimpleProperty(description="Gets whether the WebView should support zooming using its on-screen zoom controls and gestures")
+  public boolean ZoomEnabled() {
+    /*if (webView != null) {
+      return webView.getSettings().getBuiltInZoomControls();
+    }*/
+    return zoomEnabled;
   }
   @SimpleProperty(description="Sets whether the WebView should load image resources")
   public void AutoLoadImages(boolean bool) {
@@ -343,17 +358,35 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     return true;
   }
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue = "True")
   @SimpleProperty(description="Sets whether the WebView should display on-screen zoom controls")
   public void DisplayZoom(boolean bool) {
-    if (webView != null) {
+    /*if (webView != null) {
       webView.getSettings().setDisplayZoomControls(bool);
-    }
+    }*/
+    displayZoom = bool;
   }
+  @SimpleProperty(description="Gets whether the WebView should display on-screen zoom controls")
+  public boolean DisplayZoom() {
+    /*if (webView != null) {
+      return webView.getSettings().getDisplayZoomControls();
+    }*/
+    return displayZoom;
+  }
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_INTEGER,defaultValue = "100")
   @SimpleProperty(description="Sets the zoom of the page in percent. The default is 100")
   public void ZoomPercent(int zoom) {
-    if (webView != null) {
-      webView.getSettings().setTextZoom(zoom);
-    }
+    /*if (webView != null) {
+      webView.getSettings.setTextZoom(zoom);
+    }*/
+    zoomPercent = zoom;
+  }
+  @SimpleProperty(description="Gets the zoom of the page in percent")
+  public int ZoomPercent() {
+    /*if (webView != null) {
+      return webView.getSettings().getTextZoom();
+    }*/
+    return zoomPercent;
   }
   @SimpleProperty(description="Sets the default font size of text. The default is 16.")
   public void FontSize(int size) {
@@ -377,24 +410,24 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
           UserAgent = UserAgent.replace("diordnA","Android").replace("eliboM","Mobile");
       }
       webView.getSettings().setUserAgentString(UserAgent);
+      desktopMode = mode;
     }
   }
   @SimpleProperty(description="Returns whether to load content in desktop mode")
   public boolean DesktopMode() {
-    if (webView != null) {
-      String ua = webView.getSettings().getUserAgentString();
-      if (ua.contains("diordnA") && ua.contains("eliboM")) {
-        return true;
-      }
-      return false;
-    }
-    return false;
+    return desktopMode;
   }
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,defaultValue = "True")
   @SimpleProperty(description="Sets whether to enable text selection and context menu")
   public void LongClickable(boolean bool) {
     if (webView != null) {
-      webView.setLongClickable(bool);
+      webView.setLongClickable(!bool);
     }
+    longClickable = bool;
+  }
+  @SimpleProperty(description="Returns whether text selection and context menu are enabled or not")
+  public boolean LongClickable() {
+    return longClickable;
   }
   @SimpleProperty(description="Sets whether webview can access local files.Use this to enable file uploading and loading files using HTML")
   public void FileAccess(boolean allowfiles) {
@@ -558,7 +591,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public void PromptForPermission(boolean prompt) {
     prompt = prompt;
   }
-  @SimpleProperty(userVisible = true,description="Sets background color of webview")
+  @SimpleProperty(description="Sets background color of webview")
   public void BackgroundColor(int bgColor) {
     if (webView != null) {
       webView.setBackgroundColor(bgColor);
@@ -643,7 +676,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 		  webView.pageDown(bottom);
 	  }
     }
-  @SimpleFunction(description="Scrolls the contents of the WebView up by half the view size")
+  @SimpleFunction(description="Scrolls the contents of the WebView up by half the page size")
   public void PageUp(boolean top){
 	  if(webView != null){
 		  webView.pageUp(top);
@@ -1078,7 +1111,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 	@SimpleEvent(description="Event raised when new window is requested by webview with target url ,boolean 'isDialog' and 'isPopup'")
 	public void OnNewWindowRequest(String url,boolean isDialog,boolean isPopup){
 		EventDispatcher.dispatchEvent(this, "OnNewWindowRequest",url,isDialog,isPopup);
-    }
+  }
     @SimpleEvent(description="Event raised when current page enters in full screen mode")
     public void OnShowCustomView(){
       EventDispatcher.dispatchEvent(this,"OnShowCustomView");
@@ -1093,6 +1126,27 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
       return webView.getContentHeight();
     }
         return 0;
+    }
+  @SimpleFunction(description="Grants given permissions to webview.Use empty list to deny the request.")
+  public void GrantPermission(final List<String> permissions){
+        if (permissionRequest != null){
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if(permissions.isEmpty()){
+                        permissionRequest.deny();
+                    }else {
+                      String[] str = new String[permissions.size()];
+                      Object[] objArr = permissions.toArray();
+                      str = Arrays.copyOf(objArr,
+                             objArr.length,
+                             String[].class);
+                      permissionRequest.grant(str);
+                    }
+                    permissionRequest = null;
+                }
+            });
+        }
     }
 	@SimpleEvent(description="Event raised after getting SSL certificate of current displayed url/website with boolean 'isSecure' and Strings 'issuedBy','issuedTo' and 'validTill'.If 'isSecure' is false and other values are empty then assume that website is not secure")
 	 public void GotCertificate(boolean isSecure,String issuedBy,String issuedTo,String validTill){
