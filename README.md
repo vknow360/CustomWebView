@@ -1,6 +1,6 @@
 ## Introduction
 CustomWebView is an extended form of web viewer with more customization and flexibility (For MIT AI2 and its distros)<br>
-**Latest Version : 7**<br>
+**Latest Version : 7.1**<br>
 **Required Api : 21**
 
 ## Features
