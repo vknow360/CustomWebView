@@ -5,9 +5,15 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.app.PendingIntent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Icon;
+import android.support.v4.content.pm.ShortcutManagerCompat;
+import android.support.v4.content.pm.ShortcutInfoCompat;
+import android.support.v4.graphics.drawable.IconCompat;
 import android.net.Uri;
 import android.net.http.SslCertificate;
 import android.net.http.SslError;
@@ -20,6 +26,9 @@ import java.util.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import com.google.appinventor.components.annotations.DesignerComponent;
 import com.google.appinventor.components.annotations.SimpleFunction;
 import com.google.appinventor.components.annotations.SimpleObject;
@@ -37,14 +46,15 @@ import com.google.appinventor.components.runtime.PermissionResultHandler;
 import com.google.appinventor.components.annotations.androidmanifest.*;
 import com.google.appinventor.components.annotations.UsesActivities;
 import com.google.appinventor.components.annotations.UsesPermissions;
+import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.annotations.DesignerProperty;
 import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import android.view.MotionEvent;
-@DesignerComponent(version = 7, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
+@DesignerComponent(version = 8, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
 @UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="com.sunny.CustomWebView.WebActivity")})
 @SimpleObject(external=true)
-@UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE")
+@UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT")
 public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean NO_VIEW = true;
     public Activity activity;
@@ -82,6 +92,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public int zoomPercent = 100;
     public boolean zoomEnabled = true;
     public boolean displayZoom = true;
+    public Message rObj;
    public CustomWebView(ComponentContainer container) {
     	  super(container.$form());
     	  activity = container.$context();
@@ -101,7 +112,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             FrameLayout frameLayout = (FrameLayout) v;
             frameLayout.addView(w, new FrameLayout.LayoutParams(-1, -1));
             wv.put(id, w);
-			OnWebViewCreated(id);
+			      OnWebViewCreated(id);
         }
       }
   }
@@ -198,7 +209,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         web.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                final WebView.HitTestResult hitTestResult = web.getHitTestResult();
+                final WebView.HitTestResult hitTestResult = webView.getHitTestResult();
                 String item = hitTestResult.getExtra();
                 int type = hitTestResult.getType();
                 if (item == null){
@@ -210,11 +221,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                     web.requestFocusNodeHref(message);
                     str = (String)message.getData().get("url");
                 }
-                if (str == null) {
-                    str = "";
-                }
                 LongClicked(item,str,type);
-                return !longClickable;
+                return true;
             }
         });
         web.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -429,6 +437,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public boolean LongClickable() {
     return longClickable;
   }
+  @SimpleProperty(description="Sets the initial scale for active WebView. 0 means default. If initial scale is greater than 0, WebView starts with this value as initial scale. ")
+  public void InitialiScale(int scale){
+    if (webView != null) {
+      webView.setInitialScale(scale);
+    }
+  }
   @SimpleProperty(description="Sets whether webview can access local files.Use this to enable file uploading and loading files using HTML")
   public void FileAccess(boolean allowfiles) {
     if (webView != null) {
@@ -641,7 +655,45 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         });
         cookieManager.flush();
   }
-
+  @SimpleFunction(description="")
+   public void CreateShortcut(String url,String iconPath,String title){
+        try{
+          Bitmap img = BitmapFactory.decodeFile(iconPath);
+          if (img != null) {
+          Intent i = context.getPackageManager().getLaunchIntentForPackage(context.getApplicationInfo().packageName);
+        if (i != null) {
+          List<String> startValue = new ArrayList<>();
+          startValue.add(url);
+          startValue.add("2");
+            i.putExtra("APP_INVENTOR_START", JsonUtil.getJsonRepresentation(startValue));
+        }
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O){ 
+            Intent installer = new Intent("com.android.launcher.action.INSTALL_SHORTCUT");
+            installer.putExtra(Intent.EXTRA_SHORTCUT_INTENT,i);
+            installer.putExtra(Intent.EXTRA_SHORTCUT_NAME,title);
+            installer.putExtra(Intent.EXTRA_SHORTCUT_ICON,img);
+            installer.putExtra("duplicate",false);
+            context.sendBroadcast(installer);
+        }else {
+            ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
+            if (shortcutManager.isRequestPinShortcutSupported()){
+                ShortcutInfo shortcutInfo = new ShortcutInfo.Builder(context,title)
+                        .setShortLabel(title)
+                        .setIcon(Icon.createWithBitmap(img))
+                        .setIntent(i)
+                        .build();
+                Intent pinnedShortcutCallbackIntent =
+                        shortcutManager.createShortcutResultIntent(shortcutInfo);
+                PendingIntent successCallback = PendingIntent.getBroadcast(context,0,
+                        pinnedShortcutCallbackIntent,0);
+                shortcutManager.requestPinShortcut(shortcutInfo,successCallback.getIntentSender());
+            }
+        }
+      }
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    }
    @SimpleEvent(description="Event raised after 'ClearCokies' method with result")
    public void CookiesRemoved(boolean successful){
     EventDispatcher.dispatchEvent(this,"CookiesRemoved",successful);
@@ -733,6 +785,26 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
               webView.loadUrl(url);
             }
     }
+  @SimpleFunction(description="Loads the URL with postData using 'POST' method into active WebView.")
+  public void PostData(String url,String data){
+        webView.postUrl(url,data.getBytes(StandardCharsets.UTF_8));
+    }
+  @SimpleFunction(description="")
+  public void PauseWebView(int id){
+        wv.get(id).onPause();
+    }
+  @SimpleFunction(description="")
+  public void ResumeWebView(int id){
+        wv.get(id).onResume();
+    }
+  @SimpleFunction(description="")
+  public int GetProgress(int id){
+        return wv.get(id).getProgress();
+    }
+  @SimpleEvent(description="Event triggered when a window needs to be closed")
+  public void OnCloseWindowRequest(int id){
+      EventDispatcher.dispatchEvent(this,"OnCloseWindowRequest",id);
+    }  
 	@SimpleEvent(description="Event raised when page loading has finished.")
     public void PageLoaded(){
 	EventDispatcher.dispatchEvent(this, "PageLoaded");
@@ -870,54 +942,70 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
         @Override
         public void onPageFinished(WebView view, String url) {
+          if (wv.get(CurrentId()) == view) {
             if (isLoading){
                 isLoading = false;
                 PageLoaded();
             }
+          } 
         }
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+          if (wv.get(CurrentId()) == view){
             if (ignoreSslErrors){
                 handler.proceed();
             }else {
                 handler.cancel();
             }
+          }  
         }
 
         @Override
         public void onFormResubmission(WebView view, Message dontResend, Message resend) {
+          if (wv.get(CurrentId()) == view){
             dontSend = dontResend;
             reSend = resend;
             OnFormResubmission();
+          }  
         }
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl){
+          if (wv.get(CurrentId()) == view){
             OnErrorReceived(description,errorCode,failingUrl);
+          }
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+          if (wv.get(CurrentId()) == view){
             OnErrorReceived(errorResponse.getReasonPhrase(),errorResponse.getStatusCode(),request.getUrl().toString());
+          }
         }
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+          if (wv.get(CurrentId()) == view){
             OnErrorReceived(error.getDescription().toString(),error.getErrorCode(),request.getUrl().toString());
+          }
         }
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
+          if (wv.get(CurrentId()) == view){
             if (!isLoading){
                 PageStarted(url);
                 isLoading = true;
             }
+          }
         }
 
         @Override
         public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
+          if (wv.get(CurrentId()) == view){
             httpAuthHandler = handler;
             OnReceivedHttpAuthRequest(host,realm);
+          }
         }
     }
    @SimpleEvent(description="Event raised when file uploading is needed")
@@ -936,7 +1024,6 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 		}
 	  }
   }
-
   public class ChromeClient extends WebChromeClient {
         private View mCustomView;
         private WebChromeClient.CustomViewCallback mCustomViewCallback;
@@ -978,7 +1065,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
         @Override
         public void onShowCustomView(View paramView, CustomViewCallback paramCustomViewCallback) {
-          OnShowCustomView();
+          if (wv.get(CurrentId()) == paramView){
             if (mCustomView != null) {
                 onHideCustomView();
                 return;
@@ -998,6 +1085,8 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
                     updateControls();
                 }
             });
+            OnShowCustomView();
+          }
         }
         void updateControls() {
             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mCustomView.getLayoutParams();
@@ -1013,7 +1102,6 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
         @Override
         public void onHideCustomView() {
-            OnHideCustomView();
             ((FrameLayout) activity.getWindow().getDecorView()).removeView(mCustomView);
             mCustomView = null;
             activity.getWindow().getDecorView().setSystemUiVisibility(mOriginalSystemUiVisibility);
@@ -1021,36 +1109,41 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
             mCustomViewCallback.onCustomViewHidden();
             mCustomViewCallback = null;
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+            OnHideCustomView();
         }
 
         @Override
-        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+        public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+          if (wv.get(CurrentId()) == view){
+            mFilePathCallback = filePathCallback;
             FileUploadNeeded(fileChooserParams.getAcceptTypes()[0],fileChooserParams.isCaptureEnabled());
             return FileAccess();
+          }
+          return super.onShowFileChooser(view,filePathCallback,fileChooserParams);  
         }
 
         @Override
-        public boolean onCreateWindow(WebView view,final boolean isDialog,final boolean isUserGesture, Message resultMsg) {
+        public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
             if (SupportMultipleWindows()){
-                final WebView mWebView = new WebView(context);
-                mWebView.setWebViewClient(new WebViewClient(){
-                    @Override
-                    public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                        OnNewWindowRequest(url,isDialog,!isUserGesture);
-                        mWebView.stopLoading();
-                        mWebView.destroy();
-                    }
-                });
-                WebView.WebViewTransport transport = (WebView.WebViewTransport)resultMsg.obj;
-                transport.setWebView(mWebView);
-                resultMsg.sendToTarget();
+                Message href = view.getHandler().obtainMessage();
+                view.requestFocusNodeHref(href);
+                String u = href.getData().getString("url") != null ? href.getData().getString("url"):"";
+                List<WebView> w = new ArrayList<>(wv.values());
+                OnNewWindowRequest(new ArrayList<>(wv.keySet()).get(w.indexOf(view)),u,isDialog,isUserGesture);
             }
             return SupportMultipleWindows();
+        }
+        @Override
+        public void onCloseWindow(WebView window) {
+            List<WebView> w = new ArrayList<>(wv.values());
+            OnCloseWindowRequest(new ArrayList<>(wv.keySet()).get(w.indexOf(window)));
         }
 
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
+          if (wv.get(CurrentId()) == view){
             OnProgressChanged(newProgress);
+          }
         }
 
         @Override
@@ -1073,23 +1166,32 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
         @Override
         public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
+          if (wv.get(CurrentId()) == view){
             jsPromptResult = result;
             OnJsPrompt(url,message,defaultValue);
             return EnableJS();
+          }
+          return super.onJsPrompt(view,url,message,defaultValue,result);
         }
 
         @Override
         public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+          if (wv.get(CurrentId()) == view){
             OnJsAlert(url,message);
             jsAlert = result;
             return EnableJS();
+          }
+          return super.onJsAlert(view,url,message,result);
         }
 
         @Override
         public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
+          if (wv.get(CurrentId()) == view){
             jsResult = result;
             OnJsConfirm(url,message);
             return EnableJS();
+          }
+          return super.onJsConfirm(view,url,message,result);
         }
     }
     @SimpleEvent(description="Event raised when resubmission of form is needed")
@@ -1108,9 +1210,9 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         dontSend = null;
       }
     }
-	@SimpleEvent(description="Event raised when new window is requested by webview with target url ,boolean 'isDialog' and 'isPopup'")
-	public void OnNewWindowRequest(String url,boolean isDialog,boolean isPopup){
-		EventDispatcher.dispatchEvent(this, "OnNewWindowRequest",url,isDialog,isPopup);
+	@SimpleEvent(description="Event raised when new window is requested by webview with boolean 'isDialog' and 'isPopup'")
+	public void OnNewWindowRequest(int id,String url,boolean isDialog,boolean isPopup){
+		EventDispatcher.dispatchEvent(this,"OnNewWindowRequest",id,url,isDialog,isPopup);
   }
     @SimpleEvent(description="Event raised when current page enters in full screen mode")
     public void OnShowCustomView(){
@@ -1161,6 +1263,14 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
             GotCertificate(false,"","","");
 	      }
     }
+  @SimpleFunction(description="Sets cookies for given url")
+  public void SetCookies(String url,String cookieString){
+    try{
+      CookieManager.getInstance().setCookie(url, cookieString);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+  }  
   @SimpleEvent(description="Event raised when Js have to show an alert to user")
   public void OnJsAlert(String url,String message){
       EventDispatcher.dispatchEvent(this,"OnJsAlert",url,message);
