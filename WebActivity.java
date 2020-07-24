@@ -15,13 +15,13 @@ public class WebActivity extends Activity{
             Uri uri = getIntent().getData();
             if (uri != null){
             	List<String> startValue = new ArrayList<>();
-          		startValue.add(uri.toString());
-          		startValue.add("1");
-				PackageManager packageManager = getPackageManager();
-        		Intent intent = packageManager.getLaunchIntentForPackage(getPackageName());
-				intent.putExtra("APP_INVENTOR_START", JsonUtil.getJsonRepresentation(startValue));
-        		startActivity(intent);
-				finish();
+          	startValue.add(uri.toString());
+          	startValue.add("1");
+		PackageManager packageManager = getPackageManager();
+        	Intent intent = packageManager.getLaunchIntentForPackage(getPackageName());
+		intent.putExtra("APP_INVENTOR_START", JsonUtil.getJsonRepresentation(startValue));
+        	startActivity(intent);
+		finish();
             }
         }
     }
