@@ -11,9 +11,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
-import android.support.v4.content.pm.ShortcutManagerCompat;
-import android.support.v4.content.pm.ShortcutInfoCompat;
-import android.support.v4.graphics.drawable.IconCompat;
 import android.net.Uri;
 import android.net.http.SslCertificate;
 import android.net.http.SslError;
@@ -23,12 +20,12 @@ import android.view.View;
 import android.webkit.*;
 import android.widget.FrameLayout;
 import java.util.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
+import android.view.MotionEvent;
 import com.google.appinventor.components.annotations.DesignerComponent;
 import com.google.appinventor.components.annotations.SimpleFunction;
 import com.google.appinventor.components.annotations.SimpleObject;
@@ -50,13 +47,11 @@ import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.annotations.DesignerProperty;
 import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
-import android.view.MotionEvent;
 @DesignerComponent(version = 8, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView")
 @UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="com.sunny.CustomWebView.WebActivity")})
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT")
 public final class CustomWebView extends AndroidNonvisibleComponent{
-    public boolean NO_VIEW = true;
     public Activity activity;
     public WebView webView;
     public Context context;
@@ -92,8 +87,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public int zoomPercent = 100;
     public boolean zoomEnabled = true;
     public boolean displayZoom = true;
-    public Message rObj;
-   public CustomWebView(ComponentContainer container) {
+    public Message resultObj;
+  public CustomWebView(ComponentContainer container) {
     	  super(container.$form());
     	  activity = container.$context();
     	  context = (Context) activity;
@@ -222,7 +217,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                     str = (String)message.getData().get("url");
                 }
                 LongClicked(item,str,type);
-                return true;
+                return !longClickable;
             }
         });
         web.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -438,7 +433,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     return longClickable;
   }
   @SimpleProperty(description="Sets the initial scale for active WebView. 0 means default. If initial scale is greater than 0, WebView starts with this value as initial scale. ")
-  public void InitialiScale(int scale){
+  public void InitialScale(int scale){
     if (webView != null) {
       webView.setInitialScale(scale);
     }
@@ -710,6 +705,13 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
       webView.clearHistory();
     }
   }
+  @SimpleFunction()
+  public void LoadInNewWindow(int id){
+      WebView w = wv.get(id);
+      WebView.WebViewTransport transport = (WebView.WebViewTransport) resultObj.obj;
+      transport.setWebView(w);
+      resultObj.sendToTarget();
+  }
   @SimpleFunction(description="Performs zoom in in the WebView")
   public void ZoomIn(){
 	  if(webView != null){
@@ -761,7 +763,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             ((FrameLayout)w.getParent()).removeView(w);
             w.destroy();
             wv.remove(id);
-			OnWebViewRemoved(id);
+            iD = 0;
+			     OnWebViewRemoved(id);
         }
     }
   @SimpleFunction(description="Gets whether the page can go back or forward the given number of steps.")
@@ -1065,7 +1068,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
         @Override
         public void onShowCustomView(View paramView, CustomViewCallback paramCustomViewCallback) {
-          if (wv.get(CurrentId()) == paramView){
+            OnShowCustomView();
             if (mCustomView != null) {
                 onHideCustomView();
                 return;
@@ -1085,8 +1088,6 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
                     updateControls();
                 }
             });
-            OnShowCustomView();
-          }
         }
         void updateControls() {
             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mCustomView.getLayoutParams();
@@ -1102,6 +1103,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
 
         @Override
         public void onHideCustomView() {
+            OnHideCustomView();
             ((FrameLayout) activity.getWindow().getDecorView()).removeView(mCustomView);
             mCustomView = null;
             activity.getWindow().getDecorView().setSystemUiVisibility(mOriginalSystemUiVisibility);
@@ -1109,7 +1111,6 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
             mCustomViewCallback.onCustomViewHidden();
             mCustomViewCallback = null;
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
-            OnHideCustomView();
         }
 
         @Override
@@ -1125,11 +1126,12 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         @Override
         public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
             if (SupportMultipleWindows()){
-                Message href = view.getHandler().obtainMessage();
+                /*Message href = view.getHandler().obtainMessage();
                 view.requestFocusNodeHref(href);
-                String u = href.getData().getString("url") != null ? href.getData().getString("url"):"";
+                String u = href.getData().getString("url") != null ? href.getData().getString("url"):"";*/
+                resultObj = resultMsg;
                 List<WebView> w = new ArrayList<>(wv.values());
-                OnNewWindowRequest(new ArrayList<>(wv.keySet()).get(w.indexOf(view)),u,isDialog,isUserGesture);
+                OnNewWindowRequest(new ArrayList<>(wv.keySet()).get(w.indexOf(view)),/*u,*/isDialog,isUserGesture);
             }
             return SupportMultipleWindows();
         }
@@ -1211,8 +1213,8 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
       }
     }
 	@SimpleEvent(description="Event raised when new window is requested by webview with boolean 'isDialog' and 'isPopup'")
-	public void OnNewWindowRequest(int id,String url,boolean isDialog,boolean isPopup){
-		EventDispatcher.dispatchEvent(this,"OnNewWindowRequest",id,url,isDialog,isPopup);
+	public void OnNewWindowRequest(int id,/*String url,*/boolean isDialog,boolean isPopup){
+		EventDispatcher.dispatchEvent(this,"OnNewWindowRequest",id,/*url,*/isDialog,isPopup);
   }
     @SimpleEvent(description="Event raised when current page enters in full screen mode")
     public void OnShowCustomView(){
@@ -1540,7 +1542,7 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
         public boolean isAd(String url) {
             try {
                 return isAdHost(url != null && new URL(url).getHost() != null ? new URL(url).getHost() : "");
-            } catch (MalformedURLException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return isAdHost("");
