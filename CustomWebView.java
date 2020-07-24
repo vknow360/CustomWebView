@@ -432,7 +432,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public boolean LongClickable() {
     return longClickable;
   }
-  @SimpleProperty(description="Sets the initial scale for active WebView. 0 means default. If initial scale is greater than 0, WebView starts with this value as initial scale. ")
+  @SimpleProperty(description="Sets the initial scale for active WebView. 0 means default. If initial scale is greater than 0, WebView starts with this value as initial scale.")
   public void InitialScale(int scale){
     if (webView != null) {
       webView.setInitialScale(scale);
@@ -650,7 +650,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         });
         cookieManager.flush();
   }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Creates a shortcut of given website on home screen")
    public void CreateShortcut(String url,String iconPath,String title){
         try{
           Bitmap img = BitmapFactory.decodeFile(iconPath);
@@ -705,12 +705,14 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
       webView.clearHistory();
     }
   }
-  @SimpleFunction()
+  @SimpleFunction(description="Loads requested url in given webview")
   public void LoadInNewWindow(int id){
+    if (wv.containsKey(id) && resultObj != null) {
       WebView w = wv.get(id);
       WebView.WebViewTransport transport = (WebView.WebViewTransport) resultObj.obj;
       transport.setWebView(w);
       resultObj.sendToTarget();
+    }
   }
   @SimpleFunction(description="Performs zoom in in the WebView")
   public void ZoomIn(){
@@ -792,15 +794,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
   public void PostData(String url,String data){
         webView.postUrl(url,data.getBytes(StandardCharsets.UTF_8));
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Does a best-effort attempt to pause any processing that can be paused safely, such as animations and geolocation. Note that this call does not pause JavaScript.")
   public void PauseWebView(int id){
         wv.get(id).onPause();
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Resumes the previously paused WebView.")
   public void ResumeWebView(int id){
         wv.get(id).onResume();
     }
-  @SimpleFunction(description="")
+  @SimpleFunction(description="Gets the progress for the given webview")
   public int GetProgress(int id){
         return wv.get(id).getProgress();
     }
@@ -1345,7 +1347,8 @@ EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
   }
 	@SimpleFunction(description="Get cookies for specific url")
 	public String GetCookies(String url){
-        return CookieManager.getInstance().getCookie(url);
+		String cookies = CookieManager.getInstance().getCookie(url);
+        return cookies != null ? cookies : "";
     }
 	@SimpleFunction(description="Highlights and scrolls to the next match if 'forward' is true else scrolls to previous match.")
 	public void FindNext(boolean forward){
