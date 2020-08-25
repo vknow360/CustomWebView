@@ -858,15 +858,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         EventDispatcher.dispatchEvent(this,"OnCloseWindowRequest",id);
     }
     @SimpleEvent(description="Event raised when page loading has finished.")
-    public void PageLoaded(int index){
+    public void PageLoaded(int id){
         EventDispatcher.dispatchEvent(this, "PageLoaded");
     }
     @SimpleEvent(description="Event raised when downloading is needed.")
-    public void OnDownloadNeeded(int index, String url, String contentDisposition, String mimeType, long size){
+    public void OnDownloadNeeded(int id, String url, String contentDisposition, String mimeType, long size){
         EventDispatcher.dispatchEvent(this, "OnDownloadNeeded",url,contentDisposition,mimeType,size);
     }
     @SimpleEvent(description="Event raised when page loading progress has changed.")
-    public void OnProgressChanged(int index, int progress){
+    public void OnProgressChanged(int id, int progress){
         EventDispatcher.dispatchEvent(this, "OnProgressChanged",progress);
     }
     @SimpleEvent(description="Event raised after getting console message.")
@@ -902,7 +902,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         EventDispatcher.dispatchEvent(this, "AfterJavaScriptEvaluated",result);
     }
     @SimpleEvent(description="Event raised when webview gets scrolled")
-    public void OnScrollChanged(int index, int scrollX, int scrollY, int oldScrollX, int oldScrollY, boolean canGoLeft, boolean canGoRight){
+    public void OnScrollChanged(int id, int scrollX, int scrollY, int oldScrollX, int oldScrollY, boolean canGoLeft, boolean canGoRight){
         EventDispatcher.dispatchEvent(this,"OnScrollChanged",scrollX,scrollY,oldScrollX,oldScrollY,canGoLeft,canGoRight);
     }
 
@@ -913,7 +913,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
     }
     @SimpleEvent(description="Event raised when something is long clicked in webview with item(image,string,empty,etc) and type(item type like 0,1,8,etc)")
-    public void LongClicked(int index, String item, String secondaryUrl, int type){
+    public void LongClicked(int id, String item, String secondaryUrl, int type){
         EventDispatcher.dispatchEvent(this, "LongClicked",item,secondaryUrl,type);
     }
     @SimpleFunction(description="Scrolls the webview to given position")
@@ -942,7 +942,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         return 0;
     }
     @SimpleEvent(description="Event raised when any error is received during loading url and returns message,error code and failing url")
-    public void OnErrorReceived(int index, String message, int errorCode, String url){
+    public void OnErrorReceived(int id, String message, int errorCode, String url){
         EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
     }
 
@@ -1059,7 +1059,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
     }
     @SimpleEvent(description="Event raised when file uploading is needed")
-    public void FileUploadNeeded(int index, String mimeType, boolean isCaptureEnabled){
+    public void FileUploadNeeded(int id, String mimeType, boolean isCaptureEnabled){
         EventDispatcher.dispatchEvent(this,"FileUploadNeeded",mimeType,isCaptureEnabled);
     }
     @SimpleFunction(description="Uploads the given file from content uri.Use empty string to cancel the upload request.")
@@ -1235,7 +1235,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         return new ArrayList<>(wv.keySet()).get(w.indexOf(view));
     }
     @SimpleEvent(description="Event raised when resubmission of form is needed")
-    public void OnFormResubmission(int index){
+    public void OnFormResubmission(int id){
         EventDispatcher.dispatchEvent(this,"OnFormResubmission");
     }
     @SimpleFunction(description="Whether to resubmit form or not.")
@@ -1312,15 +1312,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
     }
     @SimpleEvent(description="Event raised when Js have to show an alert to user")
-    public void OnJsAlert(int index, String url, String message){
+    public void OnJsAlert(int id, String url, String message){
         EventDispatcher.dispatchEvent(this,"OnJsAlert",url,message);
     }
     @SimpleEvent(description="Tells to display a confirm dialog to the user.")
-    public void OnJsConfirm(int index, String url, String message){
+    public void OnJsConfirm(int id, String url, String message){
         EventDispatcher.dispatchEvent(this,"OnJsConfirm",url,message);
     }
     @SimpleEvent(description="Event raised when JavaScript needs input from user")
-    public void OnJsPrompt(int index, String url, String message, String defaultValue){
+    public void OnJsPrompt(int id, String url, String message, String defaultValue){
         EventDispatcher.dispatchEvent(this,"OnJsPrompt",url,message,defaultValue);
     }
     @SimpleFunction(description="Dismiss previously requested Js alert")
@@ -1349,11 +1349,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
     }
     @SimpleEvent(description="Notifies that the WebView received an HTTP authentication request.")
-    public void OnReceivedHttpAuthRequest(int index, String host, String realm){
+    public void OnReceivedHttpAuthRequest(int id, String host, String realm){
         EventDispatcher.dispatchEvent(this,"OnReceivedHttpAuthRequest",host,realm);
     }
     @SimpleEvent(description="Event indicating that page loading has started in web view.")
-    public void PageStarted(int index, String url){
+    public void PageStarted(int id, String url){
         EventDispatcher.dispatchEvent(this,"PageStarted",url);
     }
     @SimpleFunction(description="Instructs the WebView to proceed with the authentication with the given credentials.If both parameters are empty then it will cancel the request.")
@@ -1368,7 +1368,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
     }
     @SimpleEvent(description="Event raised after 'Find' method with int 'activeMatchOrdinal','numberOfMatches' and 'isDoneCounting'")
-    public void FindResultReceived(int index, int activeMatchOrdinal, int numberOfMatches, boolean isDoneCounting){
+    public void FindResultReceived(int id, int activeMatchOrdinal, int numberOfMatches, boolean isDoneCounting){
         EventDispatcher.dispatchEvent(this, "FindResultReceived",activeMatchOrdinal,numberOfMatches,isDoneCounting);
     }
     @SimpleFunction(description="Clear all location preferences.")
