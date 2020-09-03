@@ -15,5 +15,17 @@ available to you. Any libraries you need should be placed under
 You will need:
 
 * java 1.8 (either OpenJDK or Oracle)
-  * Do not use Java 8 or newer features as our build system does not yet support this.
+  * Do not use Java 8 or newer features as our build system does not
+    yet support this.
 * ant 1.10 or higher
+* git 2.3.10 or higher
+
+When cloning this repository, use the following command:
+
+```shell
+git clone --recurse-submodules https://github.com/mit-cml/extension-template.git my-extension
+```
+
+If you are cloning from a repository created using GitHub's template
+repository feature, you will need to run the upgrade-appinventor.sh
+script to obtain the initial dependencies.
