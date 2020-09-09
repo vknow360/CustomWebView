@@ -82,7 +82,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public CustomWebView(ComponentContainer container) {
         super(container.$form());
         activity = container.$context();
-        context = activity;
+        context = (Context)activity;
         wvInterface = new WebViewInterface();
         cookieManager = CookieManager.getInstance();
         deviceDensity = container.$form().deviceDensity();
@@ -99,26 +99,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public void CreateWebView(HVArrangement container,final int id){
         if(!(wv.containsKey(id) && container == null)){
             final View v = container.getView();
-            if(!wv.containsKey(id)) {
-                AsynchUtil.runAsynchronously(new Runnable() {
-                    @Override
-                    public void run() {
+            if(!wv.containsKey(id)) {        
                         WebView w = new WebView(context);
                         resetWebView(w);
                         FrameLayout frameLayout = (FrameLayout) v;
                         frameLayout.addView(w, new FrameLayout.LayoutParams(-1, -1));
                         wv.put(id, w);
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                OnWebViewCreated(id);
-                            }
-                        });
-                    }
-                });
+              }
             }
         }
-    }
     @SimpleFunction(description="Returns webview object from id")
     public Object GetWebView(int id){
         if (wv.containsKey(id)) {
@@ -126,7 +115,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
         return null;
     }
-    @SimpleEvent(description="Event raised when a webview gets removed and returns removed webview's id")
+    /*@SimpleEvent(description="Event raised when a webview gets removed and returns removed webview's id")
     public void OnWebViewRemoved(int id){
         EventDispatcher.dispatchEvent(this,"OnWebViewRemoved",id);
     }
@@ -137,26 +126,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleEvent(description="Event raised when current webview gets changed and returns old and new webview's ids")
     public void OnWebViewChanged(int oldId,int newId){
         EventDispatcher.dispatchEvent(this,"OnWebViewChanged",oldId,newId);
-    }
+    }*/
     @SimpleFunction(description="Set specific webview to current webview by id")
     public void SetWebView(final int id){
         if (wv.containsKey(id)) {
-            AsynchUtil.runAsynchronously(new Runnable() {
-                @Override
-                public void run() {
                     final int old = CurrentId();
                     webView = wv.get(id);
                     webView.setVisibility(View.VISIBLE);
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            OnWebViewChanged(old,id);
-                        }
-                    });
                     iD = id;
                 }
-            });
-        }
     }
     public void resetWebView(final WebView web){
         web.addJavascriptInterface(wvInterface, "AppInventor");
@@ -798,22 +776,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description="Destroys the webview and removes it completely from view system")
     public void RemoveWebView(final int id){
         if (wv.containsKey(id)){
-            AsynchUtil.runAsynchronously(new Runnable() {
-                @Override
-                public void run() {
                     WebView w = wv.get(id);
                     ((FrameLayout)w.getParent()).removeView(w);
                     w.destroy();
                     wv.remove(id);
                     iD = 0;
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            OnWebViewRemoved(id);
-                        }
-                    });
-                }
-            });
         }
     }
     @SimpleFunction(description="Gets whether the page can go back or forward the given number of steps.")
@@ -859,15 +826,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Event raised when page loading has finished.")
     public void PageLoaded(int id){
-        EventDispatcher.dispatchEvent(this, "PageLoaded");
+        EventDispatcher.dispatchEvent(this, "PageLoaded",id);
     }
     @SimpleEvent(description="Event raised when downloading is needed.")
     public void OnDownloadNeeded(int id, String url, String contentDisposition, String mimeType, long size){
-        EventDispatcher.dispatchEvent(this, "OnDownloadNeeded",url,contentDisposition,mimeType,size);
+        EventDispatcher.dispatchEvent(this, "OnDownloadNeeded",id,url,contentDisposition,mimeType,size);
     }
     @SimpleEvent(description="Event raised when page loading progress has changed.")
     public void OnProgressChanged(int id, int progress){
-        EventDispatcher.dispatchEvent(this, "OnProgressChanged",progress);
+        EventDispatcher.dispatchEvent(this, "OnProgressChanged",id,progress);
     }
     @SimpleEvent(description="Event raised after getting console message.")
     public void OnConsoleMessage(String message, int lineNumber, int sourceID, String level){
@@ -903,7 +870,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Event raised when webview gets scrolled")
     public void OnScrollChanged(int id, int scrollX, int scrollY, int oldScrollX, int oldScrollY, boolean canGoLeft, boolean canGoRight){
-        EventDispatcher.dispatchEvent(this,"OnScrollChanged",scrollX,scrollY,oldScrollX,oldScrollY,canGoLeft,canGoRight);
+        EventDispatcher.dispatchEvent(this,"OnScrollChanged",id,scrollX,scrollY,oldScrollX,oldScrollY,canGoLeft,canGoRight);
     }
 
     @SimpleFunction(description="Clears the highlighting surrounding text matches.")
@@ -914,7 +881,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Event raised when something is long clicked in webview with item(image,string,empty,etc) and type(item type like 0,1,8,etc)")
     public void LongClicked(int id, String item, String secondaryUrl, int type){
-        EventDispatcher.dispatchEvent(this, "LongClicked",item,secondaryUrl,type);
+        EventDispatcher.dispatchEvent(this, "LongClicked",id,item,secondaryUrl,type);
     }
     @SimpleFunction(description="Scrolls the webview to given position")
     public void ScrollTo(final int x,final int y){
@@ -943,7 +910,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Event raised when any error is received during loading url and returns message,error code and failing url")
     public void OnErrorReceived(int id, String message, int errorCode, String url){
-        EventDispatcher.dispatchEvent(this, "OnErrorReceived",message,errorCode,url);
+        EventDispatcher.dispatchEvent(this, "OnErrorReceived",id,message,errorCode,url);
     }
 
     public class WebClient extends WebViewClient{
@@ -1060,7 +1027,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Event raised when file uploading is needed")
     public void FileUploadNeeded(int id, String mimeType, boolean isCaptureEnabled){
-        EventDispatcher.dispatchEvent(this,"FileUploadNeeded",mimeType,isCaptureEnabled);
+        EventDispatcher.dispatchEvent(this,"FileUploadNeeded",id,mimeType,isCaptureEnabled);
     }
     @SimpleFunction(description="Uploads the given file from content uri.Use empty string to cancel the upload request.")
     public void UploadFile(String contentUri){
@@ -1236,7 +1203,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Event raised when resubmission of form is needed")
     public void OnFormResubmission(int id){
-        EventDispatcher.dispatchEvent(this,"OnFormResubmission");
+        EventDispatcher.dispatchEvent(this,"OnFormResubmission",id);
     }
     @SimpleFunction(description="Whether to resubmit form or not.")
     public void ResubmitForm(boolean reSubmit){
@@ -1313,15 +1280,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Event raised when Js have to show an alert to user")
     public void OnJsAlert(int id, String url, String message){
-        EventDispatcher.dispatchEvent(this,"OnJsAlert",url,message);
+        EventDispatcher.dispatchEvent(this,"OnJsAlert",id,url,message);
     }
     @SimpleEvent(description="Tells to display a confirm dialog to the user.")
     public void OnJsConfirm(int id, String url, String message){
-        EventDispatcher.dispatchEvent(this,"OnJsConfirm",url,message);
+        EventDispatcher.dispatchEvent(this,"OnJsConfirm",id,url,message);
     }
     @SimpleEvent(description="Event raised when JavaScript needs input from user")
     public void OnJsPrompt(int id, String url, String message, String defaultValue){
-        EventDispatcher.dispatchEvent(this,"OnJsPrompt",url,message,defaultValue);
+        EventDispatcher.dispatchEvent(this,"OnJsPrompt",id,url,message,defaultValue);
     }
     @SimpleFunction(description="Dismiss previously requested Js alert")
     public void DismissJsAlert(){
@@ -1350,11 +1317,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Notifies that the WebView received an HTTP authentication request.")
     public void OnReceivedHttpAuthRequest(int id, String host, String realm){
-        EventDispatcher.dispatchEvent(this,"OnReceivedHttpAuthRequest",host,realm);
+        EventDispatcher.dispatchEvent(this,"OnReceivedHttpAuthRequest",id,host,realm);
     }
     @SimpleEvent(description="Event indicating that page loading has started in web view.")
     public void PageStarted(int id, String url){
-        EventDispatcher.dispatchEvent(this,"PageStarted",url);
+        EventDispatcher.dispatchEvent(this,"PageStarted",id,url);
     }
     @SimpleFunction(description="Instructs the WebView to proceed with the authentication with the given credentials.If both parameters are empty then it will cancel the request.")
     public void ProceedHttpAuthRequest(String username,String password){
@@ -1369,7 +1336,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
     @SimpleEvent(description="Event raised after 'Find' method with int 'activeMatchOrdinal','numberOfMatches' and 'isDoneCounting'")
     public void FindResultReceived(int id, int activeMatchOrdinal, int numberOfMatches, boolean isDoneCounting){
-        EventDispatcher.dispatchEvent(this, "FindResultReceived",activeMatchOrdinal,numberOfMatches,isDoneCounting);
+        EventDispatcher.dispatchEvent(this, "FindResultReceived",id,activeMatchOrdinal,numberOfMatches,isDoneCounting);
     }
     @SimpleFunction(description="Clear all location preferences.")
     public void ClearLocation(){
@@ -1419,8 +1386,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         EventDispatcher.dispatchEvent(this,"OnPermissionRequest",permissionsList);
     }
     @SimpleEvent(description="Event raised after getting previus print's result.")
-    public void GotPrintResult(String id,boolean isCompleted,boolean isFailed,boolean isBlocked){
-        EventDispatcher.dispatchEvent(this,"GotPrintResult",id,isCompleted,isFailed,isBlocked);
+    public void GotPrintResult(String printId,boolean isCompleted,boolean isFailed,boolean isBlocked){
+        EventDispatcher.dispatchEvent(this,"GotPrintResult",printId,isCompleted,isFailed,isBlocked);
     }
     @SimpleFunction(description="Prints the content of webview with given document name")
     public void PrintWebContent(String documentName)throws Exception{
