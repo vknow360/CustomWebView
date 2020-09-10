@@ -19,6 +19,7 @@ import android.net.http.SslCertificate;
 import android.net.http.SslError;
 import android.os.*;
 import android.print.*;
+import android.util.Base64;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.*;
@@ -28,22 +29,22 @@ import com.google.appinventor.components.annotations.androidmanifest.*;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.runtime.*;
-import com.google.appinventor.components.runtime.util.AsynchUtil;
 import com.google.appinventor.components.runtime.util.JsonUtil;
-
+import org.w3c.dom.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @DesignerComponent(version = 9, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView",androidMinSdk = 21)
 @UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="com.sunny.CustomWebView.CustomWebView$WebActivity")})
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT")
-public final class CustomWebView extends AndroidNonvisibleComponent{
+public final class CustomWebView extends AndroidNonvisibleComponent {
     public Activity activity;
     public WebView webView;
     public Context context;
@@ -96,18 +97,18 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         return Math.round(p*deviceDensity);
     }
     @SimpleFunction(description="Creates the webview in given arrangement with id")
-    public void CreateWebView(HVArrangement container,final int id){
+    public void CreateWebView(HVArrangement container, final int id){
         if(!(wv.containsKey(id) && container == null)){
             final View v = container.getView();
-            if(!wv.containsKey(id)) {        
-                        WebView w = new WebView(context);
-                        resetWebView(w);
-                        FrameLayout frameLayout = (FrameLayout) v;
-                        frameLayout.addView(w, new FrameLayout.LayoutParams(-1, -1));
-                        wv.put(id, w);
-              }
+            if(!wv.containsKey(id)) {
+                WebView w = new WebView(context);
+                resetWebView(w);
+                FrameLayout frameLayout = (FrameLayout) v;
+                frameLayout.addView(w, new FrameLayout.LayoutParams(-1, -1));
+                wv.put(id, w);
             }
         }
+    }
     @SimpleFunction(description="Returns webview object from id")
     public Object GetWebView(int id){
         if (wv.containsKey(id)) {
@@ -130,11 +131,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description="Set specific webview to current webview by id")
     public void SetWebView(final int id){
         if (wv.containsKey(id)) {
-                    final int old = CurrentId();
-                    webView = wv.get(id);
-                    webView.setVisibility(View.VISIBLE);
-                    iD = id;
-                }
+            final int old = CurrentId();
+            webView = wv.get(id);
+            webView.setVisibility(View.VISIBLE);
+            iD = id;
+        }
     }
     public void resetWebView(final WebView web){
         web.addJavascriptInterface(wvInterface, "AppInventor");
@@ -776,11 +777,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description="Destroys the webview and removes it completely from view system")
     public void RemoveWebView(final int id){
         if (wv.containsKey(id)){
-                    WebView w = wv.get(id);
-                    ((FrameLayout)w.getParent()).removeView(w);
-                    w.destroy();
-                    wv.remove(id);
-                    iD = 0;
+            WebView w = wv.get(id);
+            ((FrameLayout)w.getParent()).removeView(w);
+            w.destroy();
+            wv.remove(id);
+            iD = 0;
         }
     }
     @SimpleFunction(description="Gets whether the page can go back or forward the given number of steps.")
@@ -864,7 +865,40 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
         return history;
     }
-    @SimpleEvent(description="Event raised after evaluating Js with result.")
+    @SimpleFunction(description = "Loads the given URL with the specified additional HTTP headers defined is list of lists.")
+    public void LoadWithHeaders(String url,List<List<String>> headers){
+        if (headers.size() != 0 && headers.get(0).size() == 2){
+            if (webView != null){
+                java.util.Map<String,String> header = new HashMap<String,String>();
+                for (List<String> list : headers){
+                    header.put(list.get(0),list.get(1));
+                }
+                webView.loadUrl(url,header);
+            }
+        }else{
+            GoToUrl(url);
+        }
+    }
+    @SimpleFunction(description = "Saves the current view as a web archive")
+    public void SaveArchive(String dir){
+        if (webView != null){
+            webView.saveWebArchive(dir, true, new ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String s) {
+                    if (s == null){
+                        AfterArchiveSaved(false,"");
+                    }else{
+                        AfterArchiveSaved(true,s);
+                    }
+                }
+            });
+        }
+    }
+    @SimpleEvent(description = "Event raised after 'SaveArchive' method.If 'success' is true then returns file path else empty string.")
+    public void AfterArchiveSaved(boolean success, String filePath){
+        EventDispatcher.dispatchEvent(this,"AfterArchiveSaved",success,filePath);
+    }
+    @SimpleEvent(description="Event raised after evaluating Js and returns result.")
     public void AfterJavaScriptEvaluated(String result){
         EventDispatcher.dispatchEvent(this, "AfterJavaScriptEvaluated",result);
     }
@@ -992,23 +1026,23 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 
         @Override
         public void onFormResubmission(WebView view, Message dontResend, Message resend) {
-                dontSend = dontResend;
-                reSend = resend;
-                OnFormResubmission(getIndex(view));
+            dontSend = dontResend;
+            reSend = resend;
+            OnFormResubmission(getIndex(view));
         }
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl){
-                OnErrorReceived(getIndex(view),description,errorCode,failingUrl);
+            OnErrorReceived(getIndex(view),description,errorCode,failingUrl);
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-                OnErrorReceived(getIndex(view), errorResponse.getReasonPhrase(),errorResponse.getStatusCode(),request.getUrl().toString());
+            OnErrorReceived(getIndex(view), errorResponse.getReasonPhrase(),errorResponse.getStatusCode(),request.getUrl().toString());
         }
 
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                OnErrorReceived(getIndex(view), error.getDescription().toString(),error.getErrorCode(),request.getUrl().toString());
+            OnErrorReceived(getIndex(view), error.getDescription().toString(),error.getErrorCode(),request.getUrl().toString());
         }
 
         @Override
@@ -1021,8 +1055,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 
         @Override
         public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
-                httpAuthHandler = handler;
-                OnReceivedHttpAuthRequest(getIndex(view),host,realm);
+            httpAuthHandler = handler;
+            OnReceivedHttpAuthRequest(getIndex(view),host,realm);
         }
     }
     @SimpleEvent(description="Event raised when file uploading is needed")
@@ -1132,9 +1166,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 
         @Override
         public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                mFilePathCallback = filePathCallback;
-                FileUploadNeeded(getIndex(view),fileChooserParams.getAcceptTypes()[0],fileChooserParams.isCaptureEnabled());
-                return FileAccess();
+            mFilePathCallback = filePathCallback;
+            FileUploadNeeded(getIndex(view),fileChooserParams.getAcceptTypes()[0],fileChooserParams.isCaptureEnabled());
+            return FileAccess();
         }
 
         @Override
@@ -1155,7 +1189,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
-                OnProgressChanged(getIndex(view),newProgress);
+            OnProgressChanged(getIndex(view),newProgress);
         }
 
         @Override
@@ -1178,23 +1212,23 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 
         @Override
         public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
-                jsPromptResult = result;
-                OnJsPrompt(getIndex(view),url,message,defaultValue);
-                return EnableJS();
+            jsPromptResult = result;
+            OnJsPrompt(getIndex(view),url,message,defaultValue);
+            return EnableJS();
         }
 
         @Override
         public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
-                OnJsAlert(getIndex(view),url,message);
-                jsAlert = result;
-                return EnableJS();
+            OnJsAlert(getIndex(view),url,message);
+            jsAlert = result;
+            return EnableJS();
         }
 
         @Override
         public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
-                jsResult = result;
-                OnJsConfirm(getIndex(view),url,message);
-                return EnableJS();
+            jsResult = result;
+            OnJsConfirm(getIndex(view),url,message);
+            return EnableJS();
         }
     }
     public int getIndex(WebView view){
@@ -1352,6 +1386,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public String GetCookies(String url){
         String cookies = CookieManager.getInstance().getCookie(url);
         return cookies != null ? cookies : "";
+    }
+    @SimpleFunction(description="Invokes the graphical zoom picker widget for this WebView. This will result in the zoom widget appearing on the screen to control the zoom level of this WebView.Note that it does not checks whether zoom is enabled or not.")
+    public void InvokeZoomPicker(){
+        if (webView != null) {
+            webView.invokeZoomPicker();
+        }
     }
     @SimpleFunction(description="Highlights and scrolls to the next match if 'forward' is true else scrolls to previous match.")
     public void FindNext(boolean forward){
@@ -1582,7 +1622,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                     Intent intent = new Intent();
                     //intent.setComponent(new ComponentName(getPackageName().toString(), (getPackageName()+"."+screen.length() =="0"?"Screen1":screen).toString()));
                     try{
-                        String clsName = getPackageManager().resolveActivity(getPackageManager().getLaunchIntentForPackage(pkg),0).activityInfo.name.replaceAll("Screen1",screen.length() ==0?"Screen1":JsonUtil.getObjectFromJson(screen, true).toString());
+                        String clsName = Objects.requireNonNull(getPackageManager().resolveActivity(getPackageManager().getLaunchIntentForPackage(pkg), 0)).activityInfo.name.replaceAll("Screen1",screen.length() ==0?"Screen1":JsonUtil.getObjectFromJson(screen, true).toString());
                         intent.setClassName(getApplicationContext(),clsName);
                         //intent.setClassName(getApplicationContext().getPackageName(),getApplicationContext().getPackageName()+"."+screen.length() =="0"?"Screen1":screen);
                         intent.putExtra("APP_INVENTOR_START", JsonUtil.getJsonRepresentation(startValue));
@@ -1592,6 +1632,171 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                     startActivity(intent);
                     finish();
                 }
+            }
+        }
+    }
+    // thanks to gregko (https://stackoverflow.com/a/13445760)
+    public abstract static class WebArchiveReader {
+        private Document myDoc = null;
+        private boolean myLoadingArchive = false;
+        private WebView myWebView = null;
+        private ArrayList<String> urlList = new ArrayList<String>();
+        private ArrayList<Element> urlNodes = new ArrayList<Element>();
+
+        abstract void onFinished(WebView webView);
+
+        public boolean readWebArchive(InputStream is) {
+            DocumentBuilderFactory builderFactory =
+                    DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = null;
+            myDoc = null;
+            try {
+                builder = builderFactory.newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (builder != null) {
+                    myDoc = builder.parse(is);
+                }
+                NodeList nl = myDoc.getElementsByTagName("url");
+                for (int i = 0; i < nl.getLength(); i++) {
+                    Node nd = nl.item(i);
+                    if(nd instanceof Element) {
+                        Element el = (Element) nd;
+                        // siblings of el (url) are: mimeType, textEncoding, frameName, data
+                        NodeList nodes = el.getChildNodes();
+                        for (int j = 0; j < nodes.getLength(); j++) {
+                            Node node = nodes.item(j);
+                            if (node instanceof Text) {
+                                String dt = ((Text)node).getData();
+                                byte[] b = Base64.decode(dt, Base64.DEFAULT);
+                                dt = new String(b);
+                                urlList.add(dt);
+                                urlNodes.add((Element) el.getParentNode());
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                myDoc = null;
+            }
+            return myDoc != null;
+        }
+
+        private byte [] getElBytes(Element el, String childName) {
+            try {
+                Node kid = el.getFirstChild();
+                while (kid != null) {
+                    if (childName.equals(kid.getNodeName())) {
+                        Node nn = kid.getFirstChild();
+                        if (nn instanceof Text) {
+                            String dt = ((Text)nn).getData();
+                            return Base64.decode(dt, Base64.DEFAULT);
+                        }
+                    }
+                    kid = kid.getNextSibling();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        public boolean loadToWebView(WebView v) {
+            myWebView = v;
+            v.setWebViewClient(new WebClient());
+            WebSettings webSettings = v.getSettings();
+            webSettings.setDefaultTextEncodingName("UTF-8");
+
+            myLoadingArchive = true;
+            try {
+                // Find the first ArchiveResource in myDoc, should be <ArchiveResource>
+                Element ar = (Element) myDoc.getDocumentElement().getFirstChild().getFirstChild();
+                byte[] b = getElBytes(ar, "data");
+
+                // Find out the web page charset encoding
+                String charset = null;
+                String topHtml = new String(b).toLowerCase();
+                int n1 = topHtml.indexOf("<meta http-equiv=\"content-type\"");
+                if (n1 > -1) {
+                    int n2 = topHtml.indexOf('>', n1);
+                    if (n2 > -1) {
+                        String tag = topHtml.substring(n1, n2);
+                        n1 = tag.indexOf("charset");
+                        if (n1 > -1) {
+                            tag = tag.substring(n1);
+                            n1 = tag.indexOf('=');
+                            if (n1 > -1) {
+                                tag = tag.substring(n1+1);
+                                tag = tag.trim();
+                                n1 = tag.indexOf('\"');
+                                if (n1 < 0)
+                                    n1 = tag.indexOf('\'');
+                                if (n1 > -1) {
+                                    charset = tag.substring(0, n1).trim();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (charset != null)
+                    topHtml = new String(b, charset);
+                else
+                    topHtml = new String(b);
+                String baseUrl = new String(getElBytes(ar, "url"));
+                v.loadDataWithBaseURL(baseUrl, topHtml, "text/html", "UTF-8", null);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+
+        private class WebClient extends WebViewClient {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                if (!myLoadingArchive)
+                    return null;
+                int n = urlList.indexOf(url);
+                if (n < 0)
+                    return null;
+                Element parentEl = urlNodes.get(n);
+                byte [] b = getElBytes(parentEl, "mimeType");
+                String mimeType = b == null ? "text/html" : new String(b);
+                b = getElBytes(parentEl, "textEncoding");
+                String encoding = b == null ? "UTF-8" : new String(b);
+                b = getElBytes(parentEl, "data");
+                return new WebResourceResponse(mimeType, encoding, new ByteArrayInputStream(b));
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                if (!myLoadingArchive){
+                    return null;
+                }else{
+                    int n = urlList.indexOf(request.getUrl().toString());
+                    if (n < 0)
+                        return null;
+                    Element parentEl = urlNodes.get(n);
+                    byte [] b = getElBytes(parentEl, "mimeType");
+                    String mimeType = b == null ? "text/html" : new String(b);
+                    b = getElBytes(parentEl, "textEncoding");
+                    String encoding = b == null ? "UTF-8" : new String(b);
+                    b = getElBytes(parentEl, "data");
+                    return new WebResourceResponse(mimeType, encoding, new ByteArrayInputStream(b));
+                }
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url)
+            {
+                // replace webviewclient
+                view.setWebViewClient(new WebClient());
+                myLoadingArchive = false;
+                onFinished(myWebView);
             }
         }
     }
