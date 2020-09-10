@@ -34,5 +34,5 @@ CustomWebView is an extended form of web viewer with more customization and flex
 
 ### Reference Links
 1.WebView Docs (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)<br>
-2.Kodular Community (<a href="https://community.kodular.io/t/customwebview-an-extended-form-of-web-viewer/63037">Click here</a>)
+2.Kodular Community (<a href="https://community.kodular.io/t/customwebview-an-extended-form-of-web-viewer/63037">Click here</a>) <br>
 3.MIT AI2 Community (<a href="https://community.appinventor.mit.edu/t/customwebview-an-extended-form-of-web-viewer/9934/">Click here</a>)
