@@ -1446,6 +1446,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent {
             }
         }
     }
+    @SimpleFunction(description = "Hides previously shown custom view")
+    public void HideCustomView(){
+        if (webView != null) {
+            webView.getWebChromeClient().onHideCustomView();
+        }
+    }
     @SimpleFunction(description="Restarts current/previous print job. You can request restart of a failed print job.")
     public void RestartPrinting()throws Exception{
         boolean printFinished = false;
@@ -1471,7 +1477,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent {
             mFilePathCallback = null;
         }
     }
-    @SimpleFunction(description= "Downloads the file from url")
     public void Download(String url,String mimeType,String contentDisposition,String fileName,String downloadDir){
         if (!hasWriteAccess){
             new Handler().post(new Runnable() {
@@ -1497,14 +1502,18 @@ public final class CustomWebView extends AndroidNonvisibleComponent {
             request.addRequestHeader("User-Agent", UserAgent);
             request.setDescription("Downloading file...");
             request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimeType));
-            request.allowScanningByMediaScanner();
+            //request.allowScanningByMediaScanner();
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             if (downloadDir.isEmpty()){
                 dir = Environment.DIRECTORY_DOWNLOADS;
             }else if (fileName.isEmpty()){
                 name = URLUtil.guessFileName(url, contentDisposition, mimeType);
             }
-            request.setDestinationInExternalPublicDir(dir, name);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+                request.setDestinationInExternalFilesDir(context,dir,name);
+            }else {
+                request.setDestinationInExternalPublicDir(dir, name);
+            }
             DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
             dm.enqueue(request);
         }
@@ -1635,7 +1644,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent {
             }
         }
     }
-    // thanks to gregko (https://stackoverflow.com/a/13445760)
+    // thanks to Gregko (https://stackoverflow.com/a/13445760)
     public abstract static class WebArchiveReader {
         private Document myDoc = null;
         private boolean myLoadingArchive = false;
