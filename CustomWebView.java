@@ -1531,7 +1531,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent {
             return true;
         }else if (url.startsWith("whatsapp:")){
             intent = new Intent(Intent.ACTION_SEND);
-            intent.putExtra(Intent.EXTRA_TEXT,Uri.parse(url));
+            intent.putExtra(Intent.EXTRA_TEXT,Uri.parse(url).getQueryParameter("text"));
             intent.setType("text/plain");
             intent.setPackage("com.whatsapp");
             activity.startActivity(intent);
