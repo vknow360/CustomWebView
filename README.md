@@ -32,6 +32,9 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Get internal history
 - Download offline pages and load them without internet connection
 
+## FAQ
+> What is the difference between original and modified version? <br>
+Ans:- The original version adds your app in browser's list while modfied does not.
 
 ### Reference Links
 1.WebView Docs (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)<br>
