@@ -34,7 +34,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 
 ## FAQ
 > What is the difference between original and modified version? <br>
-Ans:- The original version adds your app in browser's list while modfied does not.
+Ans:- The original version adds your app in browser's list while modfied version does not.
 
 ### Reference Links
 1.WebView Docs (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)<br>
