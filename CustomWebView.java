@@ -40,7 +40,14 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-@DesignerComponent(version = 9, description ="An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",helpUrl="https://github.com/vknow360/CustomWebView",androidMinSdk = 21)
+@DesignerComponent(version = 9,
+        versionName = "9.2",
+        description ="An extended form of Web Viewer <br> Developed by Sunny Gupta",
+        category = ComponentCategory.EXTENSION,
+        nonVisible = true,
+        iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",
+        helpUrl="https://github.com/vknow360/CustomWebView",
+        androidMinSdk = 21)
 @UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="com.sunny.CustomWebView.CustomWebView$WebActivity")})
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT")
@@ -1477,6 +1484,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent {
             mFilePathCallback = null;
         }
     }
+    @SimpleFunction(description="Downloads the given file")
     public void Download(String url,String mimeType,String contentDisposition,String fileName,String downloadDir){
         if (!hasWriteAccess){
             new Handler().post(new Runnable() {
@@ -1501,13 +1509,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent {
             request.addRequestHeader("cookie", cookies);
             request.addRequestHeader("User-Agent", UserAgent);
             request.setDescription("Downloading file...");
-            request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimeType));
+            request.setTitle(fileName);
             //request.allowScanningByMediaScanner();
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             if (downloadDir.isEmpty()){
                 dir = Environment.DIRECTORY_DOWNLOADS;
-            }else if (fileName.isEmpty()){
+            }
+            if (fileName.isEmpty()){
                 name = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                request.setTitle(name);
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
                 request.setDestinationInExternalFilesDir(context,dir,name);
