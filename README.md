@@ -30,6 +30,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Full screen video feature (OnShowCustomView and OnHideCustomView)
 - Pause and Resume webview
 - Get internal history
+- Create webpage shortcuts
 - Download offline pages and load them without internet connection
 
 ## FAQ
