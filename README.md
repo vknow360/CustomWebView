@@ -44,7 +44,7 @@ Ans:- It is an helper class/extension which you can use if you want to add your 
 > How can I set a screen name as activity to be launched after clicking external link? <br>
 Ans:- You have two methods to do that which are as follows- <br>
 i) Change activity name from `CustomWebViewHelper` class manually and compile the sources. <br>
-ii) I will create a website which will be do that for you.<br>Kindly wait.
+ii) Get extension from here: https://customwebview.000webhostapp.com
 
 
 ### Reference Links
