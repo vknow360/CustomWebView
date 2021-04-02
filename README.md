@@ -40,7 +40,6 @@ Ans:- No, that's entirely a different thing.It specifies whether deep urls (such
 > What is CustomWebViewHelper extension? <br>
 Ans:- It is an helper class/extension which you can use if you want to add your app in browsers list.
 
-<br>
 > How can I set a screen name as activity to be launched after clicking external link? <br>
 Ans:- You have two methods to do that- <br>
 i) Change activity name from `CustomWebViewHelper` class manually and compile the sources. <br>
