@@ -1,12 +1,9 @@
-//package com.sunny;
 package com.sunny.CustomWebView;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -36,14 +33,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @DesignerComponent(version = 10,
-        versionName = "10.1",
+        versionName = "10.2",
         description = "An extended form of Web Viewer <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
         iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",
         helpUrl = "https://github.com/vknow360/CustomWebView",
         androidMinSdk = 21)
-//@UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="appinventor.ai_vknow360.CustomWebView.Screen1",launchMode = "singleTask")})
 @SimpleObject(external = true)
 @UsesPermissions(permissionNames = "android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT")
 public final class CustomWebView extends AndroidNonvisibleComponent{
@@ -60,8 +56,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     private ValueCallback<Uri[]> mFilePathCallback;
     public Message dontSend;
     public Message reSend;
-    public boolean hasLocationAccess;
-    public boolean hasWriteAccess;
     public PermissionRequest permissionRequest;
     public PrintJob printJob;
     public CookieManager cookieManager;
@@ -81,6 +75,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean displayZoom = true;
     public Message resultObj;
     public float deviceDensity;
+    public GeolocationPermissions.Callback theCallback;
+    public String theOrigin;
+    public SslErrorHandler sslHandler;
 
     public CustomWebView(ComponentContainer container) {
         super(container.$form());
@@ -89,8 +86,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         wvInterface = new WebViewInterface();
         cookieManager = CookieManager.getInstance();
         deviceDensity = container.$form().deviceDensity();
-        hasWriteAccess = context.checkCallingOrSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE") == 0;
-        hasLocationAccess = context.checkCallingOrSelfPermission("android.permission.ACCESS_FINE_LOCATION") == 0;
         webView = new WebView(context);
         resetWebView(webView);
     }
@@ -466,25 +461,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
 
     @SimpleProperty(description = "Sets whether webview can access local files.Use this to enable file uploading and loading files using HTML")
-    public void FileAccess(boolean allowfiles) {
-        if (allowfiles && !hasWriteAccess) {
-            new Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                    form.askPermission("android.permission.WRITE_EXTERNAL_STORAGE",
-                            new PermissionResultHandler() {
-                                @Override
-                                public void HandlePermissionResponse(String permission, boolean granted) {
-                                    hasWriteAccess = granted;
-                                }
-                            });
-                }
-            });
-        }
-            webView.getSettings().setAllowFileAccess(allowfiles && hasWriteAccess);
-            webView.getSettings().setAllowFileAccessFromFileURLs(allowfiles && hasWriteAccess);
-            webView.getSettings().setAllowUniversalAccessFromFileURLs(allowfiles && hasWriteAccess);
-            webView.getSettings().setAllowContentAccess(allowfiles && hasWriteAccess);
+    public void FileAccess(boolean allow) {
+        webView.getSettings().setAllowFileAccess(allow);
+        webView.getSettings().setAllowFileAccessFromFileURLs(allow);
+        webView.getSettings().setAllowUniversalAccessFromFileURLs(allow);
+        webView.getSettings().setAllowContentAccess(allow);
     }
 
     @SimpleProperty(description = "Returns whether webview can access local files")
@@ -513,7 +494,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         return webView.getSettings().getJavaScriptCanOpenWindowsAutomatically();
     }
 
-    @SimpleProperty(description = "Returns whether webview ignores SSL errors", category = PropertyCategory.BEHAVIOR)
+    /*@SimpleProperty(description = "Returns whether webview ignores SSL errors", category = PropertyCategory.BEHAVIOR)
     public boolean IgnoreSslErrors() {
         return ignoreSslErrors;
     }
@@ -523,7 +504,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             "errors. Use this to accept self signed certificates from websites")
     public void IgnoreSslErrors(boolean ignore) {
         ignoreSslErrors = ignore;
-    }
+    }*/
 
     @SimpleProperty(description = "Sets whether the WebView loads pages in overview mode, that is, zooms out the content to fit on screen by width. This setting is taken into account when the content width is greater than the width of the WebView control.")
     public void LoadWithOverviewMode(boolean bool) {
@@ -555,24 +536,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         return webView.getSettings().getJavaScriptEnabled();
     }
 
-    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN, defaultValue = "False")
     @SimpleProperty(description = "Whether or not to give the application permission to use the Javascript geolocation API")
     public void UsesLocation(boolean uses) {
-        if (uses && !hasLocationAccess) {
-            new Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                    form.askPermission("android.permission.ACCESS_FINE_LOCATION",
-                            new PermissionResultHandler() {
-                                @Override
-                                public void HandlePermissionResponse(String permission, boolean granted) {
-                                    hasLocationAccess = granted;
-                                }
-                            });
-                }
-            });
-        }
-        webView.getSettings().setGeolocationEnabled(uses && hasLocationAccess);
+        webView.getSettings().setGeolocationEnabled(uses);
     }
 
     @SimpleProperty(description = "Returns whether webview will prompt for permission and raise 'OnPermissionRequest' event or not")
@@ -1003,11 +969,13 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-            if (ignoreSslErrors) {
+            sslHandler = handler;
+            OnReceivedSslError(error.getPrimaryError());
+            /*if (ignoreSslErrors) {
                 handler.proceed();
             } else {
                 handler.cancel();
-            }
+            }*/
         }
 
         @Override
@@ -1079,14 +1047,13 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 
         @Override
         public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-            final GeolocationPermissions.Callback theCallback = callback;
-            final String theOrigin = origin;
             if (!prompt) {
                 callback.invoke(origin, true, true);
-                return;
-            }
-            {
-                AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+            }else {
+                theCallback = callback;
+                theOrigin = origin;
+                OnGeolocationRequested(origin);
+                /*AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
                 alertDialog.setCancelable(false);
                 alertDialog.setTitle("Permission Request");
                 if (origin.equals("file://")) {
@@ -1105,7 +1072,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                                 theCallback.invoke(theOrigin, false, true);
                             }
                         });
-                alertDialog.show();
+                alertDialog.show();*/
             }
         }
 
@@ -1443,7 +1410,33 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public void GotPrintResult(String printId, boolean isCompleted, boolean isFailed, boolean isBlocked) {
         EventDispatcher.dispatchEvent(this, "GotPrintResult", printId, isCompleted, isFailed, isBlocked);
     }
-
+    @SimpleEvent()
+    public void OnGeolocationRequested(String origin){
+        EventDispatcher.dispatchEvent(this,"OnGeolocationRequested",origin);
+    }
+    @SimpleFunction()
+    public void AllowGeolocationAccess(boolean allow,boolean remember){
+        if (theCallback != null){
+            theCallback.invoke(theOrigin,allow,remember);
+            theCallback = null;
+            theOrigin = "";
+        }
+    }
+    @SimpleEvent()
+    public void OnReceivedSslError(int errorCode){
+        EventDispatcher.dispatchEvent(this,"OnReceivedSslError",errorCode);
+    }
+    @SimpleFunction()
+    public void ProceedSslError(boolean proceed){
+        if (sslHandler != null){
+            if (proceed) {
+                sslHandler.proceed();
+            }else {
+                sslHandler.cancel();
+            }
+            sslHandler = null;
+        }
+    }
     @SimpleFunction(description = "Prints the content of webview with given document name")
     public void PrintWebContent(String documentName) throws Exception {
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
@@ -1492,21 +1485,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
 
     @SimpleFunction(description = "Downloads the given file")
     public void Download(String url, String mimeType, String contentDisposition, String fileName, String downloadDir) {
-        if (!hasWriteAccess) {
-            new Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                    form.askPermission("android.permission.WRITE_EXTERNAL_STORAGE",
-                            new PermissionResultHandler() {
-                                @Override
-                                public void HandlePermissionResponse(String permission, boolean granted) {
-                                    hasWriteAccess = granted;
-                                }
-                            });
-                }
-            });
-        }
-        if (hasWriteAccess) {
             String name = fileName;
             String dir = downloadDir;
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -1531,7 +1509,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             }
             DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
             dm.enqueue(request);
-        }
     }
 
     public boolean DeepLinkParser(String url) {
@@ -1547,8 +1524,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             return true;
         } else if (url.startsWith("whatsapp:")) {
             intent = new Intent(Intent.ACTION_SEND);
-            intent.putExtra(Intent.EXTRA_TEXT, Uri.parse(url).getQueryParameter("text"));
-            intent.setType("text/plain");
+            /*intent.putExtra(Intent.EXTRA_TEXT, Uri.parse(url).getQueryParameter("text"));
+            intent.setType("text/plain");*/
+            intent.setData(Uri.parse(url));
             intent.setPackage("com.whatsapp");
             activity.startActivity(intent);
             return true;
