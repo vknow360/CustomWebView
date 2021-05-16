@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import android.util.Base64;
 
 @DesignerComponent(version = 10,
         versionName = "10.2",
@@ -582,7 +583,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description = "Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html) {
         CancelJsRequests();
-        webView.loadData(html, "text/html", "UTF-8");
+        webView.loadData(Base64.encodeToString(html.getBytes(), Base64.NO_PADDING), "text/html", "base64");
     }
 
     @SimpleFunction(description = "Gets whether this WebView has a back history item")
@@ -1524,6 +1525,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             return true;
         } else if (url.startsWith("whatsapp:")) {
             intent = new Intent(Intent.ACTION_SEND);
+			Uri uri = Uri.parse(url);
             /*intent.putExtra(Intent.EXTRA_TEXT, Uri.parse(url).getQueryParameter("text"));
             intent.setType("text/plain");*/
             intent.setData(Uri.parse(url));
