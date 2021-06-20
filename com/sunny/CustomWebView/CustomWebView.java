@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @DesignerComponent(version = 10,
-        versionName = "10.1",
+        versionName = "10.2",
         description = "An extended form of Web Viewer <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
