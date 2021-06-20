@@ -27,14 +27,12 @@ import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.runtime.*;
 import com.google.appinventor.components.runtime.util.JsonUtil;
 
-import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import android.util.Base64;
 
 @DesignerComponent(version = 10,
-        versionName = "10.2",
+        versionName = "10.1",
         description = "An extended form of Web Viewer <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
@@ -50,8 +48,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean followLinks = true;
     public boolean prompt = true;
     public String UserAgent = "";
-    public boolean ignoreSslErrors = false;
-    WebViewInterface wvInterface;
+    public WebViewInterface wvInterface;
     public JsPromptResult jsPromptResult;
     private String MOBILE_USER_AGENT = "";
     private ValueCallback<Uri[]> mFilePathCallback;
@@ -68,7 +65,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean isLoading = false;
     public HashMap<Integer, WebView> wv = new HashMap<>();
     public boolean blockAds = false;
-    public List<String> AD_HOSTS = new ArrayList<>();
+    public static List<String> AD_HOSTS = new ArrayList<>();
     public int iD = 0;
     public boolean desktopMode = false;
     public int zoomPercent = 100;
@@ -124,7 +121,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description = "Set specific webview to current webview by id")
     public void SetWebView(final int id) {
         if (wv.containsKey(id)) {
-            final int old = CurrentId();
             webView = wv.get(id);
             webView.setVisibility(View.VISIBLE);
             iD = id;
@@ -583,7 +579,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description = "Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html) {
         CancelJsRequests();
-        webView.loadData(Base64.encodeToString(html.getBytes(), Base64.NO_PADDING), "text/html", "base64");
+        webView.loadData(html, "text/html", "UTF-8");
     }
 
     @SimpleFunction(description = "Gets whether this WebView has a back history item")
@@ -926,6 +922,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             if (blockAds) {
                 boolean ad;
                 AdBlocker ab = new AdBlocker();
+
                 if (!loadedUrls.containsKey(url)) {
                     ad = ab.isAd(url);
                     loadedUrls.put(url, ad);
@@ -1484,33 +1481,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
     }
 
-    @SimpleFunction(description = "Downloads the given file")
-    public void Download(String url, String mimeType, String contentDisposition, String fileName, String downloadDir) {
-            String name = fileName;
-            String dir = downloadDir;
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-            request.setMimeType(mimeType);
-            String cookies = CookieManager.getInstance().getCookie(url);
-            request.addRequestHeader("cookie", cookies);
-            request.addRequestHeader("User-Agent", UserAgent);
-            request.setDescription("Downloading file...");
-            request.setTitle(fileName);
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            if (downloadDir.isEmpty()) {
-                dir = Environment.DIRECTORY_DOWNLOADS;
-            }
-            if (fileName.isEmpty()) {
-                name = URLUtil.guessFileName(url, contentDisposition, mimeType);
-                request.setTitle(name);
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                request.setDestinationInExternalFilesDir(context, dir, name);
-            } else {
-                request.setDestinationInExternalPublicDir(dir, name);
-            }
-            DownloadManager dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-            dm.enqueue(request);
-    }
 
     public boolean DeepLinkParser(String url) {
         PackageManager packageManager = context.getPackageManager();
@@ -1525,10 +1495,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             return true;
         } else if (url.startsWith("whatsapp:")) {
             intent = new Intent(Intent.ACTION_SEND);
-			Uri uri = Uri.parse(url);
-            /*intent.putExtra(Intent.EXTRA_TEXT, Uri.parse(url).getQueryParameter("text"));
-            intent.setType("text/plain");*/
-            intent.setData(Uri.parse(url));
+            intent.putExtra(Intent.EXTRA_TEXT, Uri.parse(url).getQueryParameter("text"));
+            intent.setType("text/plain");
             intent.setPackage("com.whatsapp");
             activity.startActivity(intent);
             return true;
@@ -1589,10 +1557,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         public void onFinish() {
             delegate.onFinish();
             GotPrintResult(jobName, printJob.isCompleted(), printJob.isFailed(), printJob.isBlocked());
+
         }
     }
 
-    public class AdBlocker {
+    public static class AdBlocker {
         public boolean isAd(String url) {
             try {
                 return isAdHost(url != null && new URL(url).getHost() != null ? new URL(url).getHost() : "");
@@ -1612,7 +1581,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
 
         public WebResourceResponse createEmptyResource() {
-            return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
+            return new WebResourceResponse("text/plain", "utf-8", null);
         }
     }
 }
