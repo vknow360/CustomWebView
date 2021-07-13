@@ -603,7 +603,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description = "Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html) {
         CancelJsRequests();
-        webView.loadData(html, "text/html", "UTF-8");
+        webView.loadData(android.util.Base64.encodeToString(html.getBytes(), 1), "text/html", "base64");
     }
 
     @SimpleFunction(description = "Gets whether this WebView has a back history item")
