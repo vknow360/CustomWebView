@@ -6,7 +6,7 @@ import com.google.appinventor.components.runtime.*;
 import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.common.ComponentCategory;
 @DesignerComponent(version = 1,
-        versionName = "1.0",
+        versionName = "1.1",
         description ="Helper class of CustomWebView extension to add app to browsers list<br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
