@@ -19,7 +19,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 @DesignerComponent(version = 1,
-        versionName = "1.0",
+        versionName = "1.1",
         description ="Helper class of CustomWebView extension for downloading files <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
@@ -70,7 +70,7 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
             request.setDestinationInExternalPublicDir(dir, name);
         }
         lastRequestId = downloadManager.enqueue(request);
-        Timer progressTimer = new Timer();
+        final Timer progressTimer = new Timer();
         progressTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -87,6 +87,10 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
                     form.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            if (progress >= 99) {
+                                progressTimer.cancel();
+                                progressTimer.purge();
+                            }
                             DownloadProgressChanged(progress);
                         }
                     });
@@ -118,4 +122,5 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
     public void onDestroy() {
         context.unregisterReceiver(completed);
     }
+
 }
