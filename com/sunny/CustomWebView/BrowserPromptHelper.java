@@ -5,10 +5,9 @@ import com.google.appinventor.components.annotations.androidmanifest.*;
 import com.google.appinventor.components.runtime.*;
 import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.common.ComponentCategory;
-import com.google.appinventor.components.common.PropertyTypeConstants;
 @DesignerComponent(version = 1,
-        versionName = "1.0",
-        description ="Helper class of CustomWebView extension <br> Developed by Sunny Gupta",
+        versionName = "1.1",
+        description ="Helper class of CustomWebView extension to add app to browsers list<br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
         iconName = "https://res.cloudinary.com/andromedaviewflyvipul/image/upload/c_scale,h_20,w_20/v1571472765/ktvu4bapylsvnykoyhdm.png",
@@ -16,9 +15,9 @@ import com.google.appinventor.components.common.PropertyTypeConstants;
         androidMinSdk = 21)
 @UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name="appinventor.ai_vknow360.CustomWebView.Screen1",launchMode = "singleTask")})
 @SimpleObject(external=true)
-public class CustomWebViewHelper extends AndroidNonvisibleComponent implements OnResumeListener{
+public class BrowserPromptHelper extends AndroidNonvisibleComponent implements OnResumeListener{
     public Activity activity;
-    public CustomWebViewHelper(ComponentContainer container){
+    public BrowserPromptHelper(ComponentContainer container){
         super(container.$form());
         activity = container.$context();
     }
