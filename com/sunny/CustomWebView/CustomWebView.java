@@ -1,7 +1,6 @@
 package com.sunny.CustomWebView;
 
 import android.app.Activity;
-import android.app.DownloadManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +18,7 @@ import android.os.*;
 import android.print.*;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.autofill.AutofillManager;
 import android.webkit.*;
 import android.widget.FrameLayout;
 import com.google.appinventor.components.annotations.*;
@@ -31,8 +31,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-@DesignerComponent(version = 10,
-        versionName = "10.2",
+@DesignerComponent(version = 11,
+        versionName = "11",
         description = "An extended form of Web Viewer <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
@@ -168,7 +168,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         web.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String s, String s1, String s2, String s3, long l) {
-                OnDownloadNeeded(getIndex(web), s, s2, s3, l);
+                    OnDownloadNeeded(getIndex(web), s, s2, s3, l);
             }
         });
         web.setFindListener(new WebView.FindListener() {
@@ -219,6 +219,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 OnScrollChanged(getIndex(web), i, i1, i2, i3, web.canScrollHorizontally(-1), web.canScrollHorizontally(1));
             }
         });
+        // added in v11
+        /*
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O){
+            web.getSettings().setSaveFormData(true);
+        }else{
+            AutofillManager autofillManager = context.getSystemService(AutofillManager.class);
+            autofillManager.requestAutofill(webView);
+        }
+        */
     }
 
     @SimpleFunction(description = "Returns a list of used ids")
@@ -559,7 +568,22 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public void BackgroundColor(int bgColor) {
         webView.setBackgroundColor(bgColor);
     }
-
+    // added in v11
+    /*
+    @SimpleProperty(description = "Specifies whether webview should autofill saved credentials or not")
+    public void Autofill(boolean enable){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O){
+            webView.getSettings().setSaveFormData(enable);
+        }else{
+            if (enable) {
+                AutofillManager autofillManager = context.getSystemService(AutofillManager.class);
+                autofillManager.requestAutofill(webView);
+            }else {
+                webView.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO);
+            }
+        }
+    }
+    */
     @SimpleEvent(description = "When the JavaScript calls AppInventor.setWebViewString this event is run.")
     public void WebViewStringChanged(String value) {
         EventDispatcher.dispatchEvent(this, "WebViewStringChanged", value);
@@ -579,7 +603,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description = "Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html) {
         CancelJsRequests();
-        webView.loadData(Base64.encodeToString(html.getBytes(), 1), "text/html", "base64");
+        webView.loadData(html, "text/html", "UTF-8");
     }
 
     @SimpleFunction(description = "Gets whether this WebView has a back history item")
@@ -602,7 +626,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         });
         cookieManager.flush();
     }
-
     @SimpleFunction(description = "Creates a shortcut of given website on home screen")
     public void CreateShortcut(String url, String iconPath, String title) {
         try {
@@ -888,10 +911,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public void OnErrorReceived(int id, String message, int errorCode, String url) {
         EventDispatcher.dispatchEvent(this, "OnErrorReceived", id, message, errorCode, url);
     }
-
     public class WebClient extends WebViewClient {
         public HashMap<String, Boolean> loadedUrls = new HashMap<>();
-
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.startsWith("http")) {
@@ -1051,7 +1072,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 theCallback = callback;
                 theOrigin = origin;
                 OnGeolocationRequested(origin);
-                /*AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
+                /*
+                AlertDialog alertDialog = new AlertDialog.Builder(activity).create();
                 alertDialog.setCancelable(false);
                 alertDialog.setTitle("Permission Request");
                 if (origin.equals("file://")) {
@@ -1070,7 +1092,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                                 theCallback.invoke(theOrigin, false, true);
                             }
                         });
-                alertDialog.show();*/
+                alertDialog.show();
+                */
             }
         }
 
@@ -1232,23 +1255,19 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
 
     @SimpleFunction(description = "Grants given permissions to webview.Use empty list to deny the request.")
-    public void GrantPermission(final List<String> permissions) {
+    public void GrantPermission(final String permissions) {
         if (permissionRequest != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (permissions.isEmpty()) {
+            if (permissions.isEmpty()) {
                         permissionRequest.deny();
                     } else {
-                        Object[] objArr = permissions.toArray();
-                        String[] str = Arrays.copyOf(objArr,
-                                objArr.length,
-                                String[].class);
-                        permissionRequest.grant(str);
+                        // lets just skip this part :)
+                        /*String[] str = permissions.split(",");
+                        if (str == permissionRequest.getResources()) {
+                            permissionRequest.grant(str);
+                        }*/
+                        permissionRequest.grant(permissionRequest.getResources());
                     }
-                    permissionRequest = null;
-                }
-            });
+            permissionRequest = null;
         }
     }
 
@@ -1371,14 +1390,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public void FindNext(boolean forward) {
         webView.findNext(forward);
     }
-
     public class WebViewInterface{
         String webViewString;
 
         WebViewInterface() {
             webViewString = "";
         }
-
         @JavascriptInterface
         public String getWebViewString() {
             return webViewString;
@@ -1494,9 +1511,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             activity.startActivity(intent);
             return true;
         } else if (url.startsWith("whatsapp:")) {
-            intent = new Intent(Intent.ACTION_SEND);
-            intent.putExtra(Intent.EXTRA_TEXT, Uri.parse(url).getQueryParameter("text"));
-            intent.setType("text/plain");
+            intent = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
+            //intent.putExtra(Intent.EXTRA_TEXT, Uri.parse(url).getQueryParameter("text"));
+            //intent.setType("text/plain");
             intent.setPackage("com.whatsapp");
             activity.startActivity(intent);
             return true;
