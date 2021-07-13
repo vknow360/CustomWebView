@@ -1,6 +1,6 @@
 ## Introduction
 CustomWebView is an extended form of web viewer with more customization and flexibility (For MIT AI2 and its distros)<br>
-**Latest Version : 10.1**<br>
+**Latest Version : 11**<br>
 **Required Api : 21** <br>
 **Permissions:** `android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT`
 
