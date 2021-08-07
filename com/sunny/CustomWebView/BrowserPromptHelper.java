@@ -20,6 +20,7 @@ public class BrowserPromptHelper extends AndroidNonvisibleComponent implements O
     public BrowserPromptHelper(ComponentContainer container){
         super(container.$form());
         activity = container.$context();
+        form.registerForOnResume(this);
     }
     public String getUrl(){
         Uri uri = activity.getIntent().getData();
