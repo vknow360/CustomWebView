@@ -220,14 +220,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             }
         });
         // added in v11
-        /*
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
             web.getSettings().setSaveFormData(true);
         }else{
             AutofillManager autofillManager = context.getSystemService(AutofillManager.class);
             autofillManager.requestAutofill(webView);
         }
-        */
     }
 
     @SimpleFunction(description = "Returns a list of used ids")
@@ -569,10 +567,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         webView.setBackgroundColor(bgColor);
     }
     // added in v11
-    /*
     @SimpleProperty(description = "Specifies whether webview should autofill saved credentials or not")
     public void Autofill(boolean enable){
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
             webView.getSettings().setSaveFormData(enable);
         }else{
             if (enable) {
@@ -583,7 +580,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             }
         }
     }
-    */
     @SimpleEvent(description = "When the JavaScript calls AppInventor.setWebViewString this event is run.")
     public void WebViewStringChanged(String value) {
         EventDispatcher.dispatchEvent(this, "WebViewStringChanged", value);
@@ -603,7 +599,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description = "Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html) {
         CancelJsRequests();
-        webView.loadData(android.util.Base64.encodeToString(html.getBytes(), 1), "text/html", "base64");
+        webView.loadData(html, "text/html", "UTF-8");
     }
 
     @SimpleFunction(description = "Gets whether this WebView has a back history item")
@@ -1257,7 +1253,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     @SimpleFunction(description = "Grants given permissions to webview.Use empty list to deny the request.")
     public void GrantPermission(final String permissions) {
         if (permissionRequest != null) {
-            if (permissions.isEmpty()) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (permissions.isEmpty()) {
                         permissionRequest.deny();
                     } else {
                         // lets just skip this part :)
@@ -1267,7 +1266,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                         }*/
                         permissionRequest.grant(permissionRequest.getResources());
                     }
-            permissionRequest = null;
+                    permissionRequest = null;
+                }
+            });
         }
     }
 
