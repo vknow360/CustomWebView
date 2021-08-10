@@ -37,13 +37,13 @@ CustomWebView is an extended form of web viewer with more customization and flex
 > Will disabling `DeepLink` property not add my app in browsers list?<br>
 Ans:- No, that's entirely a different thing.It specifies whether deep urls (such as `tel:`, `whatsapp:`) should open respective apps or not.
 
-> What is CustomWebViewHelper extension? <br>
+> What is BrowserPromptHelper extension? <br>
 Ans:- It is an helper class/extension which you can use if you want to add your app in browsers list.
 
 > How can I set a screen name as activity to be launched after clicking external link? <br>
 Ans:- You have two methods to do that- <br>
-i) Change activity name from `CustomWebViewHelper` class manually and compile the sources. <br>
-ii) Get extension from here: <a href="https://customwebview.000webhostapp.com">customwebview.000webhostapp.com</a>
+i) Change activity name from `BrowserPromptHelper` class manually and compile the sources. <br>
+ii) Get extension from here: <a href="https://sunnythedeveloper.xyz/customwebview/">CustomWebView extension generator</a>
 
 ### Reference Links
 1.WebView Docs (<a href="https://developer.android.com/reference/android/webkit/WebView">Click here</a>)<br>
