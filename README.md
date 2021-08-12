@@ -22,7 +22,7 @@ CustomWebView is an extended form of web viewer with more customization and flex
 - Event for permission(s) request and grant permission(s) manually
 - Print web content
 - A wide range of tools for working with JavaScript
-- Accepts external links/Adds your app in browsers list when you use `CustomWebViewHelper` extension
+- Accepts external links/Adds your app in browsers list when you use `BrowserPromptHelper` extension
 - Download files using built-in download method
 - Scroll Changed event and function to scroll to particular position
 - Create and Remove webviews dynamically
