@@ -4,35 +4,82 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
+
 import android.net.Uri;
 import android.net.http.SslCertificate;
 import android.net.http.SslError;
-import android.os.*;
-import android.print.*;
+
+import android.os.Build;
+import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.Handler;
+import android.os.Message;
+import android.os.ParcelFileDescriptor;
+
+import android.print.PageRange;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintJob;
+import android.print.PrintManager;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.autofill.AutofillManager;
-import android.webkit.*;
+
+import android.webkit.ConsoleMessage;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
+import android.webkit.GeolocationPermissions;
+import android.webkit.HttpAuthHandler;
+import android.webkit.JavascriptInterface;
+import android.webkit.JsPromptResult;
+import android.webkit.JsResult;
+import android.webkit.PermissionRequest;
+import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
+import android.webkit.WebBackForwardList;
+import android.webkit.WebChromeClient;
+import android.webkit.WebHistoryItem;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
-import com.google.appinventor.components.annotations.*;
+
+import com.google.appinventor.components.annotations.DesignerComponent;
+import com.google.appinventor.components.annotations.DesignerProperty;
+import com.google.appinventor.components.annotations.PropertyCategory;
+import com.google.appinventor.components.annotations.SimpleEvent;
+import com.google.appinventor.components.annotations.SimpleFunction;
+import com.google.appinventor.components.annotations.SimpleObject;
+import com.google.appinventor.components.annotations.SimpleProperty;
+import com.google.appinventor.components.annotations.UsesPermissions;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
-import com.google.appinventor.components.runtime.*;
+import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
+import com.google.appinventor.components.runtime.ComponentContainer;
+import com.google.appinventor.components.runtime.EventDispatcher;
+import com.google.appinventor.components.runtime.HVArrangement;
 import com.google.appinventor.components.runtime.util.JsonUtil;
+import com.google.appinventor.components.runtime.util.YailDictionary;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-@DesignerComponent(version = 11,
-        versionName = "11",
+@DesignerComponent(version = 12,
+        versionName = "12",
         description = "An extended form of Web Viewer <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
@@ -622,8 +669,21 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         });
         cookieManager.flush();
     }
+
+    @SimpleFunction(description = "Clears the form data of the webview")
+    public void ClearFormData(final int id) {
+        final WebView view = wv.get(id);
+        if (view != null) {
+            view.clearFormData();
+        }
+    }
+
     @SimpleFunction(description = "Creates a shortcut of given website on home screen")
     public void CreateShortcut(String url, String iconPath, String title) {
+        applyShortcut(url, iconPath, title, null);
+    }
+
+    private void applyShortcut(String url, String iconPath, String title, String text) {
         try {
             Bitmap img = BitmapFactory.decodeFile(iconPath);
             if (img != null) {
@@ -646,15 +706,16 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 } else {
                     ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
                     if (shortcutManager.isRequestPinShortcutSupported()) {
-                        ShortcutInfo shortcutInfo = new ShortcutInfo.Builder(context, title)
+                        ShortcutInfo.Builder shortcutInfoBuild = new ShortcutInfo.Builder(context, title)
                                 .setShortLabel(title)
                                 .setIcon(Icon.createWithBitmap(img))
-                                .setIntent(intent)
-                                .build();
-                        Intent pinnedShortcutCallbackIntent =
-                                shortcutManager.createShortcutResultIntent(shortcutInfo);
+                                .setIntent(intent);
+                        if (text != null && !text.isEmpty()) {
+                            shortcutInfoBuild.setLongLabel(text);
+                        }
+                        final ShortcutInfo shortcutInfo = shortcutInfoBuild.build();
                         PendingIntent successCallback = PendingIntent.getBroadcast(context, 0,
-                                pinnedShortcutCallbackIntent, 0);
+                                shortcutManager.createShortcutResultIntent(shortcutInfo), 0);
                         shortcutManager.requestPinShortcut(shortcutInfo, successCallback.getIntentSender());
                     }
                 }
@@ -662,6 +723,16 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @SimpleFunction(description = "Create a shortcut of the given website on the home screen")
+    public void ApplyShortcut(String url, String iconPath, String title, String text) {
+        applyShortcut(url, iconPath, title, text);
+    }
+
+    @SimpleEvent(description = "A new request is intercepted or recorded")
+    public void Intercept(String url, YailDictionary requestHeaders) {
+        EventDispatcher.dispatchEvent(this, "Intercept", url, requestHeaders);
     }
 
     @SimpleEvent(description = "Event raised after 'ClearCokies' method with result")
@@ -926,16 +997,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             String url1 = request.getUrl().toString();
             if (url1.startsWith("http")) {
                 return !followLinks;
-            } else {
-                if (deepLinks) {
-                    return DeepLinkParser(url1);
-                }
+            } else if (deepLinks){
+                return DeepLinkParser(url1);
             }
             return false;
         }
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            Intercept(url, YailDictionary.makeDictionary());
             if (blockAds) {
                 boolean ad;
                 AdBlocker ab = new AdBlocker();
@@ -954,11 +1024,18 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
 
         @Override
-        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+        public WebResourceResponse shouldInterceptRequest(final WebView view, final WebResourceRequest request) {
+            final String uri = request.getUrl().toString();
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Intercept(uri, YailDictionary.makeDictionary((Map<Object, Object>) (Map) request.getRequestHeaders()));
+                }
+            });
+
             if (blockAds) {
                 boolean ad;
                 AdBlocker ab = new AdBlocker();
-                String uri = request.getUrl().toString();
                 if (!loadedUrls.containsKey(uri)) {
                     ad = ab.isAd(uri);
                     loadedUrls.put(uri, ad);
@@ -1040,17 +1117,16 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         if (mFilePathCallback != null) {
             if (contentUri.isEmpty()) {
                 mFilePathCallback.onReceiveValue(null);
-                mFilePathCallback = null;
             } else {
                 mFilePathCallback.onReceiveValue(new Uri[]{Uri.parse(contentUri)});
-                mFilePathCallback = null;
             }
+            mFilePathCallback = null;
         }
     }
 
     public class ChromeClient extends WebChromeClient {
         private View mCustomView;
-        private WebChromeClient.CustomViewCallback mCustomViewCallback;
+        private CustomViewCallback mCustomViewCallback;
         private int mOriginalOrientation;
         private int mOriginalSystemUiVisibility;
         private final int FULL_SCREEN_SETTING = View.SYSTEM_UI_FLAG_FULLSCREEN |
@@ -1454,7 +1530,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
     }
     @SimpleFunction(description = "Prints the content of webview with given document name")
-    public void PrintWebContent(String documentName) throws Exception {
+    public void PrintWebContent(String documentName) {
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
         if (documentName.isEmpty()) {
             jobName = webView.getTitle() + "_Document";
@@ -1474,12 +1550,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
 
     @SimpleFunction(description = "Restarts current/previous print job. You can request restart of a failed print job.")
-    public void RestartPrinting() throws Exception {
+    public void RestartPrinting() {
         printJob.restart();
     }
 
     @SimpleFunction(description = "Cancels current print job. You can request cancellation of a queued, started, blocked, or failed print job.")
-    public void CancelPrinting() throws Exception {
+    public void CancelPrinting() {
         printJob.cancel();
     }
 
