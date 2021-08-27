@@ -20,8 +20,8 @@ ant clean PlayApp
 cd ../..
 
 # Update the libraries in the dependency repo
-cp .appinventor/appinventor/build/components/deps/* \
-   .appinventor/appinventor/components/build/AnnotationProcessor.jar \
+cp -r .appinventor/appinventor/build/components/deps/* \
+   .appinventor/appinventor/components/build/AnnotationProcessors.jar \
    .appinventor/appinventor/build/components/AndroidRuntime.jar \
    lib/appinventor/
 cd lib/appinventor
