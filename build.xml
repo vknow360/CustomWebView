@@ -20,10 +20,30 @@
     </classpath>
   </taskdef>
 
-  <target name="javac">
+  <target name="javac.helpers">
     <mkdir dir="${AndroidRuntime-classes.dir}" />
-    <depend srcdir="src" destdir="dest">
+    <depend srcdir="src" destdir="${AndroidRuntime-classes.dir}">
+      <include name="**/helpers/*.java" />
+    </depend>
+    <javac target="7" source="7" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
+           includeantruntime="false">
+      <classpath>
+        <fileset dir="lib/appinventor">
+          <include name="*.jar" />
+        </fileset>
+        <fileset dir="lib/deps">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+      <include name="**/helpers/*.java" />
+    </javac>
+  </target>
+
+  <target name="javac" depends="javac.helpers">
+    <mkdir dir="${AndroidRuntime-classes.dir}" />
+    <depend srcdir="src" destdir="${AndroidRuntime-classes.dir}">
       <include name="**/*.java" />
+      <exclude name="**/helpers/*.java" />
     </depend>
     <javac target="7" source="7" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
            includeantruntime="false">
@@ -36,6 +56,7 @@
         </fileset>
       </classpath>
       <include name="**/*.java" />
+      <exclude name="**/helpers/*.java" />
     </javac>
   </target>
 
