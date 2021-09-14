@@ -1220,7 +1220,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     }
 
     public int getIndex(WebView view) {
-        List<WebView> w = new ArrayList<>(wv.values());
+        List<WView> w = new ArrayList<>(wv.values());
         return new ArrayList<>(wv.keySet()).get(w.indexOf(view));
     }
 
