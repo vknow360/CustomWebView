@@ -4,79 +4,33 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
-
 import android.net.Uri;
 import android.net.http.SslCertificate;
 import android.net.http.SslError;
-
-import android.os.Build;
-import android.os.Bundle;
-import android.os.CancellationSignal;
-import android.os.Handler;
-import android.os.Message;
-import android.os.ParcelFileDescriptor;
-
-import android.print.PageRange;
-import android.print.PrintAttributes;
-import android.print.PrintDocumentAdapter;
-import android.print.PrintJob;
-import android.print.PrintManager;
-
+import android.os.*;
+import android.print.*;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.autofill.AutofillManager;
-
-import android.webkit.ConsoleMessage;
-import android.webkit.CookieManager;
-import android.webkit.DownloadListener;
-import android.webkit.GeolocationPermissions;
-import android.webkit.HttpAuthHandler;
-import android.webkit.JavascriptInterface;
-import android.webkit.JsPromptResult;
-import android.webkit.JsResult;
-import android.webkit.PermissionRequest;
-import android.webkit.SslErrorHandler;
-import android.webkit.ValueCallback;
-import android.webkit.WebBackForwardList;
-import android.webkit.WebChromeClient;
-import android.webkit.WebHistoryItem;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.webkit.*;
 import android.widget.FrameLayout;
-
-import com.google.appinventor.components.annotations.DesignerComponent;
-import com.google.appinventor.components.annotations.DesignerProperty;
-import com.google.appinventor.components.annotations.PropertyCategory;
-import com.google.appinventor.components.annotations.SimpleEvent;
-import com.google.appinventor.components.annotations.SimpleFunction;
-import com.google.appinventor.components.annotations.SimpleObject;
-import com.google.appinventor.components.annotations.SimpleProperty;
-import com.google.appinventor.components.annotations.UsesPermissions;
+import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
-import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
-import com.google.appinventor.components.runtime.ComponentContainer;
-import com.google.appinventor.components.runtime.EventDispatcher;
-import com.google.appinventor.components.runtime.HVArrangement;
+import com.google.appinventor.components.runtime.*;
 import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.runtime.util.YailDictionary;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Map;
 
 @DesignerComponent(version = 12,
         versionName = "12",
@@ -88,9 +42,9 @@ import java.util.*;
         androidMinSdk = 21)
 @SimpleObject(external = true)
 @UsesPermissions(permissionNames = "android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT")
-public final class CustomWebView extends AndroidNonvisibleComponent{
+public final class CustomWebView extends AndroidNonvisibleComponent implements WView.SwipeCallback {
     public Activity activity;
-    public WebView webView;
+    public WView webView;
     public Context context;
     public boolean followLinks = true;
     public boolean prompt = true;
@@ -110,7 +64,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public boolean deepLinks = false;
     public String jobName = "";
     public boolean isLoading = false;
-    public HashMap<Integer, WebView> wv = new HashMap<>();
+    public HashMap<Integer, WView> wv = new HashMap<>();
     public boolean blockAds = false;
     public static List<String> AD_HOSTS = new ArrayList<>();
     public int iD = 0;
@@ -131,7 +85,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         wvInterface = new WebViewInterface();
         cookieManager = CookieManager.getInstance();
         deviceDensity = container.$form().deviceDensity();
-        webView = new WebView(context);
+        webView = new WView(-1,context,this);
         resetWebView(webView);
     }
 
@@ -148,7 +102,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         if (!(wv.containsKey(id) && container == null)) {
             final View v = container.getView();
             if (!wv.containsKey(id)) {
-                WebView w = new WebView(context);
+                WView w = new WView(id,context,this);
                 resetWebView(w);
                 FrameLayout frameLayout = (FrameLayout) v;
                 frameLayout.addView(w, new FrameLayout.LayoutParams(-1, -1));
@@ -266,13 +220,14 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 OnScrollChanged(getIndex(web), i, i1, i2, i3, web.canScrollHorizontally(-1), web.canScrollHorizontally(1));
             }
         });
-        // added in v11
+        /* added in v11
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
             web.getSettings().setSaveFormData(true);
         }else{
             AutofillManager autofillManager = context.getSystemService(AutofillManager.class);
             autofillManager.requestAutofill(webView);
         }
+        */
     }
 
     @SimpleFunction(description = "Returns a list of used ids")
@@ -613,7 +568,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public void BackgroundColor(int bgColor) {
         webView.setBackgroundColor(bgColor);
     }
-    // added in v11
+    /* added in v11
     @SimpleProperty(description = "Specifies whether webview should autofill saved credentials or not")
     public void Autofill(boolean enable){
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
@@ -627,6 +582,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             }
         }
     }
+    */
     @SimpleEvent(description = "When the JavaScript calls AppInventor.setWebViewString this event is run.")
     public void WebViewStringChanged(String value) {
         EventDispatcher.dispatchEvent(this, "WebViewStringChanged", value);
@@ -669,21 +625,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         });
         cookieManager.flush();
     }
-
-    @SimpleFunction(description = "Clears the form data of the webview")
-    public void ClearFormData(final int id) {
-        final WebView view = wv.get(id);
-        if (view != null) {
-            view.clearFormData();
-        }
-    }
-
     @SimpleFunction(description = "Creates a shortcut of given website on home screen")
     public void CreateShortcut(String url, String iconPath, String title) {
-        applyShortcut(url, iconPath, title, null);
-    }
-
-    private void applyShortcut(String url, String iconPath, String title, String text) {
         try {
             Bitmap img = BitmapFactory.decodeFile(iconPath);
             if (img != null) {
@@ -706,16 +649,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
                 } else {
                     ShortcutManager shortcutManager = (ShortcutManager) context.getSystemService(Context.SHORTCUT_SERVICE);
                     if (shortcutManager.isRequestPinShortcutSupported()) {
-                        ShortcutInfo.Builder shortcutInfoBuild = new ShortcutInfo.Builder(context, title)
+                        ShortcutInfo shortcutInfo = new ShortcutInfo.Builder(context, title)
                                 .setShortLabel(title)
                                 .setIcon(Icon.createWithBitmap(img))
-                                .setIntent(intent);
-                        if (text != null && !text.isEmpty()) {
-                            shortcutInfoBuild.setLongLabel(text);
-                        }
-                        final ShortcutInfo shortcutInfo = shortcutInfoBuild.build();
+                                .setIntent(intent)
+                                .build();
+                        Intent pinnedShortcutCallbackIntent =
+                                shortcutManager.createShortcutResultIntent(shortcutInfo);
                         PendingIntent successCallback = PendingIntent.getBroadcast(context, 0,
-                                shortcutManager.createShortcutResultIntent(shortcutInfo), 0);
+                                pinnedShortcutCallbackIntent, 0);
                         shortcutManager.requestPinShortcut(shortcutInfo, successCallback.getIntentSender());
                     }
                 }
@@ -723,16 +665,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @SimpleFunction(description = "Create a shortcut of the given website on the home screen")
-    public void ApplyShortcut(String url, String iconPath, String title, String text) {
-        applyShortcut(url, iconPath, title, text);
-    }
-
-    @SimpleEvent(description = "A new request is intercepted or recorded")
-    public void Intercept(String url, YailDictionary requestHeaders) {
-        EventDispatcher.dispatchEvent(this, "Intercept", url, requestHeaders);
     }
 
     @SimpleEvent(description = "Event raised after 'ClearCokies' method with result")
@@ -978,6 +910,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     public void OnErrorReceived(int id, String message, int errorCode, String url) {
         EventDispatcher.dispatchEvent(this, "OnErrorReceived", id, message, errorCode, url);
     }
+
     public class WebClient extends WebViewClient {
         public HashMap<String, Boolean> loadedUrls = new HashMap<>();
         @Override
@@ -997,15 +930,17 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             String url1 = request.getUrl().toString();
             if (url1.startsWith("http")) {
                 return !followLinks;
-            } else if (deepLinks){
-                return DeepLinkParser(url1);
+            } else {
+                if (deepLinks) {
+                    return DeepLinkParser(url1);
+                }
             }
             return false;
         }
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-            Intercept(url, YailDictionary.makeDictionary());
+            RequestIntercepted(url, YailDictionary.makeDictionary());
             if (blockAds) {
                 boolean ad;
                 AdBlocker ab = new AdBlocker();
@@ -1024,12 +959,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
 
         @Override
-        public WebResourceResponse shouldInterceptRequest(final WebView view, final WebResourceRequest request) {
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             final String uri = request.getUrl().toString();
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Intercept(uri, YailDictionary.makeDictionary((Map<Object, Object>) (Map) request.getRequestHeaders()));
+                    RequestIntercepted(uri, YailDictionary.makeDictionary((Map<Object, Object>) (Map) request.getRequestHeaders()));
                 }
             });
 
@@ -1117,16 +1052,17 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         if (mFilePathCallback != null) {
             if (contentUri.isEmpty()) {
                 mFilePathCallback.onReceiveValue(null);
+                mFilePathCallback = null;
             } else {
                 mFilePathCallback.onReceiveValue(new Uri[]{Uri.parse(contentUri)});
+                mFilePathCallback = null;
             }
-            mFilePathCallback = null;
         }
     }
 
     public class ChromeClient extends WebChromeClient {
         private View mCustomView;
-        private CustomViewCallback mCustomViewCallback;
+        private WebChromeClient.CustomViewCallback mCustomViewCallback;
         private int mOriginalOrientation;
         private int mOriginalSystemUiVisibility;
         private final int FULL_SCREEN_SETTING = View.SYSTEM_UI_FLAG_FULLSCREEN |
@@ -1530,7 +1466,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
         }
     }
     @SimpleFunction(description = "Prints the content of webview with given document name")
-    public void PrintWebContent(String documentName) {
+    public void PrintWebContent(String documentName) throws Exception {
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
         if (documentName.isEmpty()) {
             jobName = webView.getTitle() + "_Document";
@@ -1550,12 +1486,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
     }
 
     @SimpleFunction(description = "Restarts current/previous print job. You can request restart of a failed print job.")
-    public void RestartPrinting() {
+    public void RestartPrinting() throws Exception {
         printJob.restart();
     }
 
     @SimpleFunction(description = "Cancels current print job. You can request cancellation of a queued, started, blocked, or failed print job.")
-    public void CancelPrinting() {
+    public void CancelPrinting() throws Exception {
         printJob.cancel();
     }
 
@@ -1678,4 +1614,28 @@ public final class CustomWebView extends AndroidNonvisibleComponent{
             return new WebResourceResponse("text/plain", "utf-8", null);
         }
     }
+
+    // v12beta
+
+    @SimpleEvent(description = "A new request is intercepted or recorded <br> Added by Xoma")
+    public void RequestIntercepted(String url, YailDictionary requestHeaders) {
+        EventDispatcher.dispatchEvent(this, "Intercept", url, requestHeaders);
+    }
+    @SimpleFunction(description = "Clears the form data of the webview <br> Added by Xoma")
+    public void ClearFormData(final int id) {
+        final WebView view = wv.get(id);
+        if (view != null) {
+            view.clearFormData();
+        }
+    }
+    @SimpleEvent(description = "")
+    public void Swiped(int id,int direction){
+        EventDispatcher.dispatchEvent(this,"Swiped",id,direction);
+    }
+
+    @Override
+    public void onSwipe(int i, int i1) {
+        Swiped(i,i1);
+    }
+
 }

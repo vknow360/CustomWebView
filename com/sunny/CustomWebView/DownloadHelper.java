@@ -78,8 +78,7 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
                 downloadQuery.setFilterById(lastRequestId);
                 Cursor cursor = downloadManager.query(downloadQuery);
                 if (cursor.moveToFirst()){
-                    int downloadedSize = cursor.getInt(cursor
-                            .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                    int downloadedSize = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
                     int totalSize = cursor.getInt(cursor
                             .getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                     cursor.close();
@@ -87,11 +86,11 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
                     form.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            DownloadProgressChanged(progress);
                             if (progress >= 99) {
                                 progressTimer.cancel();
                                 progressTimer.purge();
                             }
-                            DownloadProgressChanged(progress);
                         }
                     });
                 }
