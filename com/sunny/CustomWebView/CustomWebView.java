@@ -959,7 +959,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
 
         @Override
-        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+        public WebResourceResponse shouldInterceptRequest(WebView view,final WebResourceRequest request) {
             final String uri = request.getUrl().toString();
             activity.runOnUiThread(new Runnable() {
                 @Override

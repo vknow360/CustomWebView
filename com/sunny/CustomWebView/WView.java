@@ -7,7 +7,7 @@ import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 public class WView extends WebView {
     GestureDetector gd;
-    public WView(int id,Context context,SwipeCallback callback) {
+    public WView(final int id,Context context,final SwipeCallback callback) {
         super(context);
         SimpleOnGestureListener onGestureListener = new SimpleOnGestureListener() {
             @Override
