@@ -11,9 +11,15 @@ import android.os.Build;
 import android.os.Environment;
 import android.webkit.CookieManager;
 import android.webkit.URLUtil;
-import com.google.appinventor.components.annotations.*;
+import com.google.appinventor.components.annotations.DesignerComponent;
+import com.google.appinventor.components.annotations.SimpleEvent;
+import com.google.appinventor.components.annotations.SimpleFunction;
+import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.common.ComponentCategory;
-import com.google.appinventor.components.runtime.*;
+import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
+import com.google.appinventor.components.runtime.ComponentContainer;
+import com.google.appinventor.components.runtime.EventDispatcher;
+import com.google.appinventor.components.runtime.OnDestroyListener;
 
 import java.util.Timer;
 import java.util.TimerTask;

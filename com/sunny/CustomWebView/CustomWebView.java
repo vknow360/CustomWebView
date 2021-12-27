@@ -14,26 +14,68 @@ import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.net.http.SslCertificate;
 import android.net.http.SslError;
-import android.os.*;
-import android.print.*;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.Handler;
+import android.os.Message;
+import android.os.ParcelFileDescriptor;
+import android.print.PageRange;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintJob;
+import android.print.PrintManager;
 import android.view.MotionEvent;
 import android.view.View;
-import android.webkit.*;
+import android.webkit.ConsoleMessage;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
+import android.webkit.GeolocationPermissions;
+import android.webkit.HttpAuthHandler;
+import android.webkit.JavascriptInterface;
+import android.webkit.JsPromptResult;
+import android.webkit.JsResult;
+import android.webkit.PermissionRequest;
+import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
+import android.webkit.WebBackForwardList;
+import android.webkit.WebChromeClient;
+import android.webkit.WebHistoryItem;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
-import com.google.appinventor.components.annotations.*;
+import com.google.appinventor.components.annotations.DesignerComponent;
+import com.google.appinventor.components.annotations.DesignerProperty;
+import com.google.appinventor.components.annotations.PropertyCategory;
+import com.google.appinventor.components.annotations.SimpleEvent;
+import com.google.appinventor.components.annotations.SimpleFunction;
+import com.google.appinventor.components.annotations.SimpleObject;
+import com.google.appinventor.components.annotations.SimpleProperty;
+import com.google.appinventor.components.annotations.UsesPermissions;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
-import com.google.appinventor.components.runtime.*;
+import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
+import com.google.appinventor.components.runtime.ComponentContainer;
+import com.google.appinventor.components.runtime.EventDispatcher;
+import com.google.appinventor.components.runtime.HVArrangement;
 import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.runtime.util.YailDictionary;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @DesignerComponent(version = 12,
-        versionName = "12",
+        versionName = "12.0beta",
         description = "An extended form of Web Viewer <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
@@ -43,40 +85,41 @@ import java.util.Map;
 @SimpleObject(external = true)
 @UsesPermissions(permissionNames = "android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT")
 public final class CustomWebView extends AndroidNonvisibleComponent implements WView.SwipeCallback {
-    public Activity activity;
-    public WView webView;
-    public Context context;
-    public boolean followLinks = true;
-    public boolean prompt = true;
-    public String UserAgent = "";
-    public WebViewInterface wvInterface;
-    public JsPromptResult jsPromptResult;
+    private final Activity activity;
+    private WView webView;
+    private final Context context;
+    private boolean followLinks = true;
+    private boolean prompt = true;
+    private String UserAgent = "";
+    private final WebViewInterface wvInterface;
+    private JsPromptResult jsPromptResult;
     private String MOBILE_USER_AGENT = "";
     private ValueCallback<Uri[]> mFilePathCallback;
-    public Message dontSend;
-    public Message reSend;
-    public PermissionRequest permissionRequest;
-    public PrintJob printJob;
-    public CookieManager cookieManager;
-    public JsResult jsResult;
-    public JsResult jsAlert;
-    public HttpAuthHandler httpAuthHandler;
-    public boolean deepLinks = false;
-    public String jobName = "";
-    public boolean isLoading = false;
-    public HashMap<Integer, WView> wv = new HashMap<>();
-    public boolean blockAds = false;
-    public static List<String> AD_HOSTS = new ArrayList<>();
-    public int iD = 0;
-    public boolean desktopMode = false;
-    public int zoomPercent = 100;
-    public boolean zoomEnabled = true;
-    public boolean displayZoom = true;
-    public Message resultObj;
-    public float deviceDensity;
-    public GeolocationPermissions.Callback theCallback;
-    public String theOrigin;
-    public SslErrorHandler sslHandler;
+    private Message dontSend;
+    private Message reSend;
+    private PermissionRequest permissionRequest;
+    private PrintJob printJob;
+    private final CookieManager cookieManager;
+    private JsResult jsResult;
+    private JsResult jsAlert;
+    private HttpAuthHandler httpAuthHandler;
+    private boolean deepLinks = false;
+    private String jobName = "";
+    private boolean isLoading = false;
+    private final HashMap<Integer, WView> wv = new HashMap<>();
+    private boolean blockAds = false;
+    private static final List<String> AD_HOSTS = new ArrayList<>();
+    private int iD = 0;
+    private boolean desktopMode = false;
+    private int zoomPercent = 100;
+    private boolean zoomEnabled = true;
+    private boolean displayZoom = true;
+    private Message resultObj;
+    private final float deviceDensity;
+    private GeolocationPermissions.Callback theCallback;
+    private String theOrigin;
+    private SslErrorHandler sslHandler;
+    private final List<String> customDeepLink = new ArrayList<>();
 
     public CustomWebView(ComponentContainer container) {
         super(container.$form());
@@ -169,7 +212,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         web.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String s, String s1, String s2, String s3, long l) {
-                    OnDownloadNeeded(getIndex(web), s, s2, s3, l);
+                OnDownloadNeeded(getIndex(web), s, s2, s3, l);
             }
         });
         web.setFindListener(new WebView.FindListener() {
@@ -1438,7 +1481,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     public void GotPrintResult(String printId, boolean isCompleted, boolean isFailed, boolean isBlocked) {
         EventDispatcher.dispatchEvent(this, "GotPrintResult", printId, isCompleted, isFailed, isBlocked);
     }
-    @SimpleEvent()
+    @SimpleEvent(description = "Event raised when page asks for location access. Developer must handle/show dialog from him/herself.")
     public void OnGeolocationRequested(String origin){
         EventDispatcher.dispatchEvent(this,"OnGeolocationRequested",origin);
     }
@@ -1561,6 +1604,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
                 e.printStackTrace();
                 return false;
             }
+        }else if (!customDeepLink.isEmpty() && customDeepLink.contains(url.split(":")[0])){
+            intent = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
+            activity.startActivity(intent);
+            return true;
         }
         return false;
     }
@@ -1591,7 +1638,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
     }
 
-    public static class AdBlocker {
+    public class AdBlocker {
         public boolean isAd(String url) {
             try {
                 return isAdHost(url != null && new URL(url).getHost() != null ? new URL(url).getHost() : "");
@@ -1603,6 +1650,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
 
         private boolean isAdHost(String host) {
             if (host.isEmpty()) {
+                return false;
+            }else if (webView.getUrl().contains(host)){
                 return false;
             }
             int index = host.indexOf(".");
@@ -1628,6 +1677,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
             view.clearFormData();
         }
     }
+
+    @SimpleFunction(description = "Registers to open specified link in associated external app(s)")
+    public void RegisterDeepLink(String scheme){
+        customDeepLink.add(scheme);
+    }
+
     @SimpleEvent(description = "")
     public void Swiped(int id,int direction){
         EventDispatcher.dispatchEvent(this,"Swiped",id,direction);
