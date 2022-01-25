@@ -238,23 +238,27 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         web.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                final WebView.HitTestResult hitTestResult = webView.getHitTestResult();
-                String item = hitTestResult.getExtra();
-                int type = hitTestResult.getType();
-                if (type != WebView.HitTestResult.UNKNOWN_TYPE) {
-                    if (item == null) {
-                        item = "";
+                if (!webView.isLongClickable()){
+                    return true;
+                }else {
+                    final WebView.HitTestResult hitTestResult = webView.getHitTestResult();
+                    String item = hitTestResult.getExtra();
+                    int type = hitTestResult.getType();
+                    if (type != WebView.HitTestResult.UNKNOWN_TYPE) {
+                        if (item == null) {
+                            item = "";
+                        }
+                        String str = "";
+                        if (type == 8) {
+                            Message message = new Handler().obtainMessage();
+                            web.requestFocusNodeHref(message);
+                            str = (String) message.getData().get("url");
+                        }
+                        LongClicked(getIndex(web), item, str, type);
+                        return !webView.isLongClickable();
                     }
-                    String str = "";
-                    if (type == 8) {
-                        Message message = new Handler().obtainMessage();
-                        web.requestFocusNodeHref(message);
-                        str = (String) message.getData().get("url");
-                    }
-                    LongClicked(getIndex(web), item, str, type);
-                    return webView.isLongClickable();
+                    return false;
                 }
-                return false;
             }
         });
         web.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -493,15 +497,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         return desktopMode;
     }
 
-    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN, defaultValue = "True")
+    //@DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN, defaultValue = "True")
     @SimpleProperty(description = "Sets whether to enable text selection and context menu")
     public void LongClickable(boolean bool) {
-        webView.setLongClickable(!bool);
+        webView.setLongClickable(bool);
     }
 
     @SimpleProperty(description = "Returns whether text selection and context menu are enabled or not")
     public boolean LongClickable() {
-        return !webView.isLongClickable();
+        return webView.isLongClickable();
     }
 
     @SimpleProperty(description = "Sets the initial scale for active WebView. 0 means default. If initial scale is greater than 0, WebView starts with this value as initial scale.")
@@ -1681,6 +1685,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     @SimpleFunction(description = "Registers to open specified link in associated external app(s)")
     public void RegisterDeepLink(String scheme){
         customDeepLink.add(scheme);
+    }
+
+    @SimpleProperty()
+    public void SetVibrationEnabled(boolean v){
+        webView.setHapticFeedbackEnabled(v);
     }
 
     @SimpleEvent(description = "")
