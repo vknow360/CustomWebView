@@ -1,5 +1,6 @@
 package com.sunny.CustomWebView;
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import com.google.appinventor.components.annotations.DesignerComponent;
 import com.google.appinventor.components.annotations.SimpleEvent;
@@ -12,10 +13,7 @@ import com.google.appinventor.components.annotations.androidmanifest.CategoryEle
 import com.google.appinventor.components.annotations.androidmanifest.DataElement;
 import com.google.appinventor.components.annotations.androidmanifest.IntentFilterElement;
 import com.google.appinventor.components.common.ComponentCategory;
-import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
-import com.google.appinventor.components.runtime.ComponentContainer;
-import com.google.appinventor.components.runtime.EventDispatcher;
-import com.google.appinventor.components.runtime.OnResumeListener;
+import com.google.appinventor.components.runtime.*;
 
 @DesignerComponent(version = 1,
         versionName = "1.1",
@@ -27,14 +25,15 @@ import com.google.appinventor.components.runtime.OnResumeListener;
         androidMinSdk = 21)
 @UsesActivities(activities = {@ActivityElement(intentFilters = {@IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https")}), @IntentFilterElement(actionElements = {@ActionElement(name = "android.intent.action.VIEW")}, categoryElements = {@CategoryElement(name = "android.intent.category.DEFAULT"), @CategoryElement(name = "android.intent.category.BROWSABLE")}, dataElements = {@DataElement(scheme = "http"), @DataElement(scheme = "https"), @DataElement(mimeType = "text/html"), @DataElement(mimeType = "text/plain"), @DataElement(mimeType = "application/xhtml+xml")})},name=".Screen1",launchMode = "singleTask")})
 @SimpleObject(external=true)
-public class BrowserPromptHelper extends AndroidNonvisibleComponent implements OnResumeListener{
+public class BrowserPromptHelper extends AndroidNonvisibleComponent implements OnNewIntentListener {
     public Activity activity;
     public BrowserPromptHelper(ComponentContainer container){
         super(container.$form());
         activity = container.$context();
+        form.registerForOnNewIntent(this);
     }
-    public String getUrl(){
-        Uri uri = activity.getIntent().getData();
+    public String getUrl(Intent intent){
+        Uri uri = intent.getData();
         if (uri != null && uri.toString() != null){
             return uri.toString();
         }
@@ -42,15 +41,16 @@ public class BrowserPromptHelper extends AndroidNonvisibleComponent implements O
     }
     @SimpleFunction(description = "Returns the url which started the current activity")
     public String GetStartUrl(){
-        return getUrl();
+        return getUrl(activity.getIntent());
     }
 
-    @Override
-    public void onResume() {
-        OnResume(getUrl());
-    }
     @SimpleEvent(description = "Event raised when app gets resumed and gives the url which started this activity/screen if there is any else empty string")
     public void OnResume(String url){
         EventDispatcher.dispatchEvent(this,"OnResume",url);
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        OnResume(getUrl(intent));
     }
 }

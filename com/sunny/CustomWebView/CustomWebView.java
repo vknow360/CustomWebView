@@ -171,7 +171,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
     }
 
-    public void resetWebView(final WebView web) {
+    private void resetWebView(final WebView web) {
         web.addJavascriptInterface(wvInterface, "AppInventor");
         MOBILE_USER_AGENT = web.getSettings().getUserAgentString();
         web.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING);
@@ -203,7 +203,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         web.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         web.getSettings().setSupportMultipleWindows(true);
         web.getSettings().setGeolocationDatabasePath(null);
-        web.getSettings().setDatabaseEnabled(false);
+        web.getSettings().setDatabaseEnabled(true);
         web.getSettings().setGeolocationEnabled(false);
         if (UserAgent.isEmpty()) {
             UserAgent = MOBILE_USER_AGENT;
@@ -308,42 +308,42 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         return wvInterface.webViewString;
     }
 
-    @SimpleProperty(description = "")
+    @SimpleProperty(description = "Sets scroll bar style")
     public void ScrollBarStyle(int style) {
         webView.setScrollBarStyle(style);
     }
 
-    @SimpleProperty(description = "")
+    @SimpleProperty(description = "Gets scroll bar style")
     public int ScrollBarStyle() {
         return webView.getScrollBarStyle();
     }
 
-    @SimpleProperty(description = "")
+    @SimpleProperty(description = "Sets over scroll mode")
     public void OverScrollMode(int mode) {
         webView.setOverScrollMode(mode);
     }
 
-    @SimpleProperty(description = "")
+    @SimpleProperty(description = "Gets over scroll mode")
     public int OverScrollMode() {
         return webView.getOverScrollMode();
     }
 
-    @SimpleProperty(description = "")
+    @SimpleProperty(description = "Sets layer type")
     public void LayerType(int type) {
         webView.setLayerType(type, null);
     }
 
-    @SimpleProperty(description = "")
+    @SimpleProperty(description = "Gets layer type")
     public int LayerType() {
         return webView.getLayerType();
     }
 
-    @SimpleProperty()
+    @SimpleProperty(description = "Sets rotation angle")
     public void RotationAngle(float rotation) {
         webView.setRotation(rotation);
     }
 
-    @SimpleProperty()
+    @SimpleProperty(description = "Gets rotation angle")
     public float RotationAngle() {
         return webView.getRotation();
     }
@@ -649,7 +649,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     @SimpleFunction(description = "Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html) {
         CancelJsRequests();
-        webView.loadData(html, "text/html", "UTF-8");
+        webView.loadDataWithBaseURL(null,html,"text/html", "UTF-8", null);
     }
 
     @SimpleFunction(description = "Gets whether this WebView has a back history item")
@@ -958,7 +958,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         EventDispatcher.dispatchEvent(this, "OnErrorReceived", id, message, errorCode, url);
     }
 
-    public class WebClient extends WebViewClient {
+    private class WebClient extends WebViewClient {
         public HashMap<String, Boolean> loadedUrls = new HashMap<>();
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -1107,7 +1107,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
     }
 
-    public class ChromeClient extends WebChromeClient {
+    private class ChromeClient extends WebChromeClient {
         private View mCustomView;
         private WebChromeClient.CustomViewCallback mCustomViewCallback;
         private int mOriginalOrientation;
@@ -1266,7 +1266,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
     }
 
-    public int getIndex(WebView view) {
+    private int getIndex(WebView view) {
         List<WView> w = new ArrayList<>(wv.values());
         return new ArrayList<>(wv.keySet()).get(w.indexOf(view));
     }
@@ -1542,7 +1542,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         printJob.cancel();
     }
 
-    public void CancelJsRequests() {
+    private void CancelJsRequests() {
         if (jsAlert != null) {
             jsAlert.cancel();
             jsAlert = null;
@@ -1559,7 +1559,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     }
 
 
-    public boolean DeepLinkParser(String url) {
+    private boolean DeepLinkParser(String url) {
         PackageManager packageManager = context.getPackageManager();
         Intent intent;
         if (url.startsWith("tel:")) {
@@ -1572,8 +1572,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
             return true;
         } else if (url.startsWith("whatsapp:")) {
             intent = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
-            //intent.putExtra(Intent.EXTRA_TEXT, Uri.parse(url).getQueryParameter("text"));
-            //intent.setType("text/plain");
             intent.setPackage("com.whatsapp");
             activity.startActivity(intent);
             return true;
@@ -1642,8 +1640,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
     }
 
-    public class AdBlocker {
-        public boolean isAd(String url) {
+    private class AdBlocker {
+        private boolean isAd(String url) {
             try {
                 return isAdHost(url != null && new URL(url).getHost() != null ? new URL(url).getHost() : "");
             } catch (Exception e) {
@@ -1663,7 +1661,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
                     index + 1 < host.length() && isAdHost(host.substring(index + 1)));
         }
 
-        public WebResourceResponse createEmptyResource() {
+        private WebResourceResponse createEmptyResource() {
             return new WebResourceResponse("text/plain", "utf-8", null);
         }
     }
