@@ -64,9 +64,10 @@ import com.google.appinventor.components.runtime.EventDispatcher;
 import com.google.appinventor.components.runtime.HVArrangement;
 import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.runtime.util.YailDictionary;
+import com.google.appinventor.components.runtime.util.YailList;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -128,7 +129,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         wvInterface = new WebViewInterface();
         cookieManager = CookieManager.getInstance();
         deviceDensity = container.$form().deviceDensity();
-        webView = new WView(-1,context,this);
+        webView = new WView(-1, context, this);
         resetWebView(webView);
     }
 
@@ -145,7 +146,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         if (!(wv.containsKey(id) && container == null)) {
             final View v = container.getView();
             if (!wv.containsKey(id)) {
-                WView w = new WView(id,context,this);
+                WView w = new WView(id, context, this);
                 resetWebView(w);
                 FrameLayout frameLayout = (FrameLayout) v;
                 frameLayout.addView(w, new FrameLayout.LayoutParams(-1, -1));
@@ -238,9 +239,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         web.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if (!webView.isLongClickable()){
+                if (!webView.isLongClickable()) {
                     return true;
-                }else {
+                } else {
                     final WebView.HitTestResult hitTestResult = webView.getHitTestResult();
                     String item = hitTestResult.getExtra();
                     int type = hitTestResult.getType();
@@ -615,6 +616,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     public void BackgroundColor(int bgColor) {
         webView.setBackgroundColor(bgColor);
     }
+
     /* added in v11
     @SimpleProperty(description = "Specifies whether webview should autofill saved credentials or not")
     public void Autofill(boolean enable){
@@ -649,7 +651,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     @SimpleFunction(description = "Loads the given data into this WebView using a 'data' scheme URL.")
     public void LoadHtml(String html) {
         CancelJsRequests();
-        webView.loadDataWithBaseURL(null,html,"text/html", "UTF-8", null);
+        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
     }
 
     @SimpleFunction(description = "Gets whether this WebView has a back history item")
@@ -672,6 +674,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         });
         cookieManager.flush();
     }
+
     @SimpleFunction(description = "Creates a shortcut of given website on home screen")
     public void CreateShortcut(String url, String iconPath, String title) {
         try {
@@ -814,8 +817,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     }
 
     @SimpleFunction(description = "Loads the URL with postData using 'POST' method into active WebView.")
-    public void PostData(String url, String data) {
-        webView.postUrl(url, data.getBytes(StandardCharsets.UTF_8));
+    public void PostData(String url, String data) throws UnsupportedEncodingException {
+        webView.postUrl(url, data.getBytes("UTF-8"));
     }
 
     @SimpleFunction(description = "Does a best-effort attempt to pause any processing that can be paused safely, such as animations and geolocation. Note that this call does not pause JavaScript.")
@@ -882,13 +885,13 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     }
 
     @SimpleFunction(description = "Loads the given URL with the specified additional HTTP headers defined is list of lists.")
-    public void LoadWithHeaders(String url, List<List<String>> headers) {
-        if (headers.size() != 0 && headers.get(0).size() == 2) {
-            java.util.Map<String, String> header = new HashMap<String, String>();
-            for (List<String> list : headers) {
-                header.put(list.get(0), list.get(1));
+    public void LoadWithHeaders(String url, YailDictionary headers) {
+        if (!headers.isEmpty()) {
+            Map optionsMap = new HashMap<>();
+            for (Object key : headers.keySet()) {
+                optionsMap.put(key, headers.get(key));
             }
-            webView.loadUrl(url, header);
+            webView.loadUrl(url, optionsMap);
         } else {
             GoToUrl(url);
         }
@@ -960,6 +963,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
 
     private class WebClient extends WebViewClient {
         public HashMap<String, Boolean> loadedUrls = new HashMap<>();
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.startsWith("http")) {
@@ -1006,7 +1010,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
 
         @Override
-        public WebResourceResponse shouldInterceptRequest(WebView view,final WebResourceRequest request) {
+        public WebResourceResponse shouldInterceptRequest(WebView view, final WebResourceRequest request) {
             final String uri = request.getUrl().toString();
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -1123,7 +1127,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
             if (!prompt) {
                 callback.invoke(origin, true, true);
-            }else {
+            } else {
                 theCallback = callback;
                 theOrigin = origin;
                 OnGeolocationRequested(origin);
@@ -1450,12 +1454,14 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     public void FindNext(boolean forward) {
         webView.findNext(forward);
     }
-    public class WebViewInterface{
+
+    public class WebViewInterface {
         String webViewString;
 
         WebViewInterface() {
             webViewString = "";
         }
+
         @JavascriptInterface
         public String getWebViewString() {
             return webViewString;
@@ -1485,33 +1491,38 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     public void GotPrintResult(String printId, boolean isCompleted, boolean isFailed, boolean isBlocked) {
         EventDispatcher.dispatchEvent(this, "GotPrintResult", printId, isCompleted, isFailed, isBlocked);
     }
+
     @SimpleEvent(description = "Event raised when page asks for location access. Developer must handle/show dialog from him/herself.")
-    public void OnGeolocationRequested(String origin){
-        EventDispatcher.dispatchEvent(this,"OnGeolocationRequested",origin);
+    public void OnGeolocationRequested(String origin) {
+        EventDispatcher.dispatchEvent(this, "OnGeolocationRequested", origin);
     }
+
     @SimpleFunction()
-    public void AllowGeolocationAccess(boolean allow,boolean remember){
-        if (theCallback != null){
-            theCallback.invoke(theOrigin,allow,remember);
+    public void AllowGeolocationAccess(boolean allow, boolean remember) {
+        if (theCallback != null) {
+            theCallback.invoke(theOrigin, allow, remember);
             theCallback = null;
             theOrigin = "";
         }
     }
+
     @SimpleEvent()
-    public void OnReceivedSslError(int errorCode){
-        EventDispatcher.dispatchEvent(this,"OnReceivedSslError",errorCode);
+    public void OnReceivedSslError(int errorCode) {
+        EventDispatcher.dispatchEvent(this, "OnReceivedSslError", errorCode);
     }
+
     @SimpleFunction()
-    public void ProceedSslError(boolean proceed){
-        if (sslHandler != null){
+    public void ProceedSslError(boolean proceed) {
+        if (sslHandler != null) {
             if (proceed) {
                 sslHandler.proceed();
-            }else {
+            } else {
                 sslHandler.cancel();
             }
             sslHandler = null;
         }
     }
+
     @SimpleFunction(description = "Prints the content of webview with given document name")
     public void PrintWebContent(String documentName) throws Exception {
         PrintManager printManager = (PrintManager) context.getSystemService(Context.PRINT_SERVICE);
@@ -1571,7 +1582,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
             activity.startActivity(intent);
             return true;
         } else if (url.startsWith("whatsapp:")) {
-            intent = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
+            intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             intent.setPackage("com.whatsapp");
             activity.startActivity(intent);
             return true;
@@ -1606,8 +1617,8 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
                 e.printStackTrace();
                 return false;
             }
-        }else if (!customDeepLink.isEmpty() && customDeepLink.contains(url.split(":")[0])){
-            intent = new Intent(Intent.ACTION_VIEW,Uri.parse(url));
+        } else if (!customDeepLink.isEmpty() && customDeepLink.contains(url.split(":")[0])) {
+            intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             activity.startActivity(intent);
             return true;
         }
@@ -1653,7 +1664,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         private boolean isAdHost(String host) {
             if (host.isEmpty()) {
                 return false;
-            }else if (webView.getUrl().contains(host)){
+            } else if (webView.getUrl().contains(host)) {
                 return false;
             }
             int index = host.indexOf(".");
@@ -1672,6 +1683,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     public void RequestIntercepted(String url, YailDictionary requestHeaders) {
         EventDispatcher.dispatchEvent(this, "Intercept", url, requestHeaders);
     }
+
     @SimpleFunction(description = "Clears the form data of the webview <br> Added by Xoma")
     public void ClearFormData(final int id) {
         final WebView view = wv.get(id);
@@ -1681,23 +1693,28 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     }
 
     @SimpleFunction(description = "Registers to open specified link in associated external app(s)")
-    public void RegisterDeepLink(String scheme){
+    public void RegisterDeepLink(String scheme) {
         customDeepLink.add(scheme);
     }
 
-    @SimpleProperty()
-    public void SetVibrationEnabled(boolean v){
+    @SimpleProperty(description = "Sets whether vibration feedback enabled on long click ")
+    public void VibrationEnabled(boolean v) {
         webView.setHapticFeedbackEnabled(v);
     }
+    @SimpleProperty(description = "Returns whether vibration feedback enabled on long click ")
+    public boolean VibrationEnabled() {
+        return webView.isHapticFeedbackEnabled();
+    }
+    
 
-    @SimpleEvent(description = "")
-    public void Swiped(int id,int direction){
-        EventDispatcher.dispatchEvent(this,"Swiped",id,direction);
+    @SimpleEvent(description = "Event raised when webview is swiped")
+    public void Swiped(int id, int direction) {
+        EventDispatcher.dispatchEvent(this, "Swiped", id, direction);
     }
 
     @Override
     public void onSwipe(int i, int i1) {
-        Swiped(i,i1);
+        Swiped(i, i1);
     }
 
 }

@@ -7,13 +7,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
 import android.webkit.CookieManager;
 import android.webkit.URLUtil;
+import android.os.Build;
 import com.google.appinventor.components.annotations.DesignerComponent;
 import com.google.appinventor.components.annotations.SimpleEvent;
 import com.google.appinventor.components.annotations.SimpleFunction;
+import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
@@ -34,9 +34,10 @@ import java.util.TimerTask;
         androidMinSdk = 21)
 @SimpleObject(external=true)
 public class DownloadHelper extends AndroidNonvisibleComponent implements OnDestroyListener{
-    public Context context;
-    public DownloadManager downloadManager;
-    public long lastRequestId;
+    private Context context;
+    private DownloadManager downloadManager;
+    private long lastRequestId;
+    private int visibility = 1;
     public BroadcastReceiver completed = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -51,10 +52,18 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
         downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         context.registerReceiver(completed,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
+
+    @SimpleProperty(description="Sets download notification visibility")
+    public void NotificationVisibility(int i){
+        visibility = i;
+    }
+
+    @SimpleFunction(description = "Returns guessed file name")
+    public String GuessFileName(String url, String mimeType, String contentDisposition){
+        return URLUtil.guessFileName(url, contentDisposition, mimeType);
+    }
     @SimpleFunction(description = "Downloads the given file")
-    public void Download(String url, String mimeType, String contentDisposition, String fileName, String downloadDir) {
-        String name = fileName;
-        String dir = downloadDir;
+    public void Download(String url, String mimeType, String fileName, String downloadDir) {
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
         request.setMimeType(mimeType);
         String cookies = CookieManager.getInstance().getCookie(url);
@@ -62,18 +71,12 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
         //request.addRequestHeader("User-Agent", UserAgent);
         request.setDescription("Downloading file...");
         request.setTitle(fileName);
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        if (downloadDir.isEmpty()) {
-            dir = Environment.DIRECTORY_DOWNLOADS;
-        }
-        if (fileName.isEmpty()) {
-            name = URLUtil.guessFileName(url, contentDisposition, mimeType);
-            request.setTitle(name);
-        }
+        request.setNotificationVisibility(visibility);
+        request.setTitle(fileName);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            request.setDestinationInExternalFilesDir(context, dir, name);
+            request.setDestinationInExternalFilesDir(context, downloadDir, fileName);
         } else {
-            request.setDestinationInExternalPublicDir(dir, name);
+            request.setDestinationInExternalPublicDir(downloadDir, fileName);
         }
         lastRequestId = downloadManager.enqueue(request);
         final Timer progressTimer = new Timer();
@@ -84,11 +87,11 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
                 downloadQuery.setFilterById(lastRequestId);
                 Cursor cursor = downloadManager.query(downloadQuery);
                 if (cursor.moveToFirst()){
-                    int downloadedSize = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                    int totalSize = cursor.getInt(cursor
+                    long downloadedSize = (long)cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                    long totalSize = (long)cursor.getLong(cursor
                             .getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                     cursor.close();
-                    final int progress = downloadedSize*100/totalSize;
+                    final int progress = (int)((downloadedSize*100)/totalSize);
                     form.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
