@@ -64,8 +64,8 @@ import com.google.appinventor.components.runtime.EventDispatcher;
 import com.google.appinventor.components.runtime.HVArrangement;
 import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.runtime.util.YailDictionary;
-import com.google.appinventor.components.runtime.util.YailList;
 
+import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -991,48 +991,47 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-            RequestIntercepted(url, YailDictionary.makeDictionary());
+            //RequestIntercepted(url, YailDictionary.makeDictionary());
             if (blockAds) {
                 boolean ad;
                 AdBlocker ab = new AdBlocker();
-
-                if (!loadedUrls.containsKey(url)) {
-                    ad = ab.isAd(url);
-                    loadedUrls.put(url, ad);
-                } else {
+                if (loadedUrls.containsKey(url)){
                     ad = loadedUrls.get(url);
+                }else {
+                    ad = ab.isAd(url);
+                    loadedUrls.put(url,ad);
                 }
                 return ad ? ab.createEmptyResource() :
-                        null;
-            } else {
-                return null;
+                        super.shouldInterceptRequest(view,url);
             }
+            return super.shouldInterceptRequest(view,url);
         }
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, final WebResourceRequest request) {
-            final String uri = request.getUrl().toString();
+            final String url = request.getUrl().toString();
+            /*
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    RequestIntercepted(uri, YailDictionary.makeDictionary((Map<Object, Object>) (Map) request.getRequestHeaders()));
+                    RequestIntercepted(url, YailDictionary.makeDictionary((Map<Object, Object>) (Map) request.getRequestHeaders()));
                 }
             });
+             */
 
             if (blockAds) {
                 boolean ad;
                 AdBlocker ab = new AdBlocker();
-                if (!loadedUrls.containsKey(uri)) {
-                    ad = ab.isAd(uri);
-                    loadedUrls.put(uri, ad);
-                } else {
-                    ad = loadedUrls.get(uri);
+                if (loadedUrls.containsKey(url)){
+                    ad = loadedUrls.get(url);
+                }else {
+                    ad = ab.isAd(url);
+                    loadedUrls.put(url,ad);
                 }
                 return ad ? ab.createEmptyResource() :
-                        null;
-            } else {
-                return null;
+                        super.shouldInterceptRequest(view,url);
             }
+            return super.shouldInterceptRequest(view,request);
         }
 
         @Override
@@ -1662,28 +1661,33 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
 
         private boolean isAdHost(String host) {
-            if (host.isEmpty()) {
+            if (host.isEmpty() /*|| webView.getUrl().contains(host)*/) {
                 return false;
-            } else if (webView.getUrl().contains(host)) {
-                return false;
+            } else {
+                int index = host.indexOf(".");
+                return index >= 0 && (AD_HOSTS.contains(host) ||
+                        index + 1 < host.length() && isAdHost(host.substring(index + 1)));
             }
-            int index = host.indexOf(".");
-            return index >= 0 && (AD_HOSTS.contains(host) ||
-                    index + 1 < host.length() && isAdHost(host.substring(index + 1)));
         }
 
         private WebResourceResponse createEmptyResource() {
-            return new WebResourceResponse("text/plain", "utf-8", null);
+            return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
         }
     }
-
+    /*    
+    @SimpleFunction()
+    public boolean IsAd(String host){
+        AdBlocker blocker = new AdBlocker();
+        return blocker.isAd(host);
+    }
+    */
     // v12beta
-
+/*
     @SimpleEvent(description = "A new request is intercepted or recorded <br> Added by Xoma")
     public void RequestIntercepted(String url, YailDictionary requestHeaders) {
-        EventDispatcher.dispatchEvent(this, "Intercept", url, requestHeaders);
+        EventDispatcher.dispatchEvent(this, "RequestIntercepted", url, requestHeaders);
     }
-
+*/
     @SimpleFunction(description = "Clears the form data of the webview <br> Added by Xoma")
     public void ClearFormData(final int id) {
         final WebView view = wv.get(id);
