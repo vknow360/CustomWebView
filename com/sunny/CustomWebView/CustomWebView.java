@@ -1618,6 +1618,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
             }
         } else if (!customDeepLink.isEmpty() && customDeepLink.contains(url.split(":")[0])) {
             intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
             activity.startActivity(intent);
             return true;
         }
