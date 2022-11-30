@@ -66,8 +66,10 @@ import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.runtime.util.YailDictionary;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -109,7 +111,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     private boolean isLoading = false;
     private final HashMap<Integer, WView> wv = new HashMap<>();
     private boolean blockAds = false;
-    private static final List<String> AD_HOSTS = new ArrayList<>();
+    private String AD_HOSTS = "";
     private int iD = 0;
     private boolean desktopMode = false;
     private int zoomPercent = 100;
@@ -121,6 +123,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     private String theOrigin;
     private SslErrorHandler sslHandler;
     private final List<String> customDeepLink = new ArrayList<>();
+    private boolean isScrollEnabled = true;
 
     public CustomWebView(ComponentContainer container) {
         super(container.$form());
@@ -133,11 +136,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         resetWebView(webView);
     }
 
-    public int d2p(int d) {
+    private int d2p(int d) {
         return Math.round(d / deviceDensity);
     }
 
-    public int p2d(int p) {
+    private int p2d(int p) {
         return Math.round(p * deviceDensity);
     }
 
@@ -225,15 +228,19 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         web.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_UP:
-                        if (!v.hasFocus()) {
-                            v.requestFocus();
-                        }
-                        break;
+                if (isScrollEnabled) {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                        case MotionEvent.ACTION_UP:
+                            if (!v.hasFocus()) {
+                                v.requestFocus();
+                            }
+                            break;
+                    }
+                    return false;
+                }else {
+                    return(event.getAction() == MotionEvent.ACTION_MOVE);
                 }
-                return false;
             }
         });
         web.setOnLongClickListener(new View.OnLongClickListener() {
@@ -405,7 +412,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING, defaultValue = "")
     @SimpleProperty(description = "Sets the ad hosts which will be blocked")
     public void AdHosts(String hosts) {
-        AD_HOSTS.addAll(Arrays.asList(hosts.split(",")));
+        AD_HOSTS = hosts;
     }
 
     @SimpleProperty(description = "Sets whether the WebView requires a user gesture to play media")
@@ -962,7 +969,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     }
 
     private class WebClient extends WebViewClient {
-        public HashMap<String, Boolean> loadedUrls = new HashMap<>();
+        private static final String ASSET_PREFIX = "file:///appinventor_asset/";
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -992,24 +999,20 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
             //RequestIntercepted(url, YailDictionary.makeDictionary());
-            if (blockAds) {
-                boolean ad;
-                AdBlocker ab = new AdBlocker();
-                if (loadedUrls.containsKey(url)){
-                    ad = loadedUrls.get(url);
-                }else {
-                    ad = ab.isAd(url);
-                    loadedUrls.put(url,ad);
+            if (url.startsWith("http://localhost/") || url.startsWith(ASSET_PREFIX)) {
+                if (blockAds) {
+                    AdBlocker ab = new AdBlocker();
+                    boolean ad = ab.isAd(url);
+                    return ad ? ab.createEmptyResource() :
+                            super.shouldInterceptRequest(view, url);
                 }
-                return ad ? ab.createEmptyResource() :
-                        super.shouldInterceptRequest(view,url);
+                return handleAppRequest(url);
             }
             return super.shouldInterceptRequest(view,url);
         }
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, final WebResourceRequest request) {
-            final String url = request.getUrl().toString();
             /*
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -1018,18 +1021,15 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
                 }
             });
              */
-
-            if (blockAds) {
-                boolean ad;
-                AdBlocker ab = new AdBlocker();
-                if (loadedUrls.containsKey(url)){
-                    ad = loadedUrls.get(url);
-                }else {
-                    ad = ab.isAd(url);
-                    loadedUrls.put(url,ad);
+            if ("localhost".equals(request.getUrl().getAuthority())
+                    || request.getUrl().toString().startsWith(ASSET_PREFIX)) {
+                if (blockAds) {
+                    AdBlocker ab = new AdBlocker();
+                    boolean ad = ab.isAdHost(request.getUrl().getHost());
+                    return ad ? ab.createEmptyResource() :
+                            super.shouldInterceptRequest(view,request);
                 }
-                return ad ? ab.createEmptyResource() :
-                        super.shouldInterceptRequest(view,url);
+                return handleAppRequest(request.getUrl().toString());
             }
             return super.shouldInterceptRequest(view,request);
         }
@@ -1090,6 +1090,40 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
             httpAuthHandler = handler;
             OnReceivedHttpAuthRequest(getIndex(view), host, realm);
         }
+
+        private WebResourceResponse handleAppRequest(String url) {
+            String path;
+            if (url.startsWith(ASSET_PREFIX)) {
+                path = url.substring(ASSET_PREFIX.length());
+            } else {
+                path = url.substring(url.indexOf("//localhost/") + 12);
+            }
+            InputStream stream;
+            try {
+                stream = form.openAsset(path);
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Access-Control-Allow-Origin", "localhost");
+                String mimeType = URLConnection.getFileNameMap().getContentTypeFor(path);
+                String encoding = "utf-8";
+                if (mimeType == null
+                        || (!mimeType.startsWith("text/") && !mimeType.equals("application/javascript"))) {
+                    encoding = null;
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    return new WebResourceResponse(mimeType, encoding, 200, "OK", headers, stream);
+                } else {
+                    return new WebResourceResponse(mimeType, encoding, stream);
+                }
+            } catch (Exception e) {
+                ByteArrayInputStream error = new ByteArrayInputStream("404 Not Found".getBytes());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    return new WebResourceResponse("text/plain", "utf-8", 404, "Not Found", null, error);
+                } else {
+                    return new WebResourceResponse("text/plain", "utf-8", error);
+                }
+            }
+        }
+
     }
 
     @SimpleEvent(description = "Event raised when file uploading is needed")
@@ -1618,7 +1652,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
             }
         } else if (!customDeepLink.isEmpty() && customDeepLink.contains(url.split(":")[0])) {
             intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
             activity.startActivity(intent);
             return true;
         }
@@ -1652,9 +1685,17 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     }
 
     private class AdBlocker {
+        private String getHost(String url){
+            try {
+                return new URL(url).getHost() != null ? new URL(url).getHost() : "";
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return "";
+        }
         private boolean isAd(String url) {
             try {
-                return isAdHost(url != null && new URL(url).getHost() != null ? new URL(url).getHost() : "");
+                return isAdHost(getHost(url));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1662,12 +1703,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         }
 
         private boolean isAdHost(String host) {
-            if (host.isEmpty() /*|| webView.getUrl().contains(host)*/) {
+            if (webView.getUrl().contains(host)) {
                 return false;
             } else {
-                int index = host.indexOf(".");
-                return index >= 0 && (AD_HOSTS.contains(host) ||
-                        index + 1 < host.length() && isAdHost(host.substring(index + 1)));
+                return AD_HOSTS.contains(host);
             }
         }
 
@@ -1675,20 +1714,14 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
             return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
         }
     }
-    /*    
-    @SimpleFunction()
-    public boolean IsAd(String host){
-        AdBlocker blocker = new AdBlocker();
-        return blocker.isAd(host);
-    }
-    */
+
     // v12beta
-/*
+
     @SimpleEvent(description = "A new request is intercepted or recorded <br> Added by Xoma")
     public void RequestIntercepted(String url, YailDictionary requestHeaders) {
         EventDispatcher.dispatchEvent(this, "RequestIntercepted", url, requestHeaders);
     }
-*/
+
     @SimpleFunction(description = "Clears the form data of the webview <br> Added by Xoma")
     public void ClearFormData(final int id) {
         final WebView view = wv.get(id);
@@ -1710,7 +1743,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     public boolean VibrationEnabled() {
         return webView.isHapticFeedbackEnabled();
     }
-    
+    @SimpleProperty()
+    public void Scrollable(boolean b){
+        isScrollEnabled = b;
+    }
 
     @SimpleEvent(description = "Event raised when webview is swiped")
     public void Swiped(int id, int direction) {
