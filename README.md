@@ -53,3 +53,4 @@ ii) Get extension from here: <a href="https://sunnythedeveloper.xyz/customwebvie
 ## Donators
 - <a href="https://community.kodular.io/u/almeidapablo">Pablo A. Rod</a>
 - <a href="https://community.appinventor.mit.edu/u/biesys">Carlos Bieberach</a>
+- <a href="https://community.kodular.io/u/yash_kumar1/activity">Yash Kumar</a>
