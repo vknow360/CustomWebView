@@ -78,7 +78,6 @@ import java.util.Map;
 import java.util.Objects;
 
 @DesignerComponent(version = 12,
-        versionName = "12.0beta",
         description = "An extended form of Web Viewer <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
@@ -1716,11 +1715,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     }
 
     // v12beta
-
+	/*
     @SimpleEvent(description = "A new request is intercepted or recorded <br> Added by Xoma")
     public void RequestIntercepted(String url, YailDictionary requestHeaders) {
         EventDispatcher.dispatchEvent(this, "RequestIntercepted", url, requestHeaders);
     }
+	*/
 
     @SimpleFunction(description = "Clears the form data of the webview <br> Added by Xoma")
     public void ClearFormData(final int id) {
