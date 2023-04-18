@@ -50,7 +50,7 @@ ii) Get extension from here: <a href="sunny.byteisticuser.me/customwebview/">Cus
 2.MIT AI2 Community (<a href="https://community.appinventor.mit.edu/t/customwebview-an-extended-form-of-web-viewer/9934/">Click here</a>)<br>
 3.Kodular Community (<a href="https://community.kodular.io/t/customwebview-an-extended-form-of-web-viewer/63037">Click here</a>)
 
-## Donators
+## Sponsers
 - <a href="https://community.kodular.io/u/almeidapablo">Pablo A. Rod</a>
 - <a href="https://community.appinventor.mit.edu/u/biesys">Carlos Bieberach</a>
 - <a href="https://community.kodular.io/u/yash_kumar1/activity">Yash Kumar</a>
