@@ -268,12 +268,14 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
                 }
             }
         });
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         web.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
                 OnScrollChanged(getIndex(web), i, i1, i2, i3, web.canScrollHorizontally(-1), web.canScrollHorizontally(1));
             }
         });
+	}
         /* added in v11
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
             web.getSettings().setSaveFormData(true);
