@@ -54,3 +54,4 @@ ii) Get extension from here: <a href="sunny.byteisticuser.me/customwebview/">Cus
 - <a href="https://community.kodular.io/u/almeidapablo">Pablo A. Rod</a>
 - <a href="https://community.appinventor.mit.edu/u/biesys">Carlos Bieberach</a>
 - <a href="https://community.kodular.io/u/yash_kumar1/activity">Yash Kumar</a>
+- <a href="https://community.appinventor.mit.edu/u/3dmixer/summary">Imre Erdelyi</a>
