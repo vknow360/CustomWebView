@@ -1,2 +1,6 @@
+.idea/
+update-deps.sh
+upgrade-appinventor.sh
+
 build/
-out/
+libs/appinventor
