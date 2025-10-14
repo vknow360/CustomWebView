@@ -10,6 +10,17 @@ public class WView extends WebView {
     private final GestureDetector gd;
     private final int id;
     private OnScrollChangeListener onScrollChangeListener;
+
+
+    private static final class SwipeConstants {
+        static final float MIN_SWIPE_DISTANCE = 200f;
+        static final float MAX_VERTICAL_DEVIATION = 90f;
+        static final float MIN_SWIPE_VELOCITY = 350f;
+
+        static final int DIRECTION_RIGHT = 1;
+        static final int DIRECTION_LEFT = 2;
+    }
+
     public WView(final int id,Context context,final SwipeCallback callback) {
         super(context);
         this.id = id;
@@ -36,11 +47,11 @@ public class WView extends WebView {
                 deltay = Math.abs(e1.getRawY() - e2.getRawY());
                 velo = Math.abs(velocityX);
 
-                if (deltax > 200 && deltay < 90 && velo > 350) {
+                if (deltax > SwipeConstants.MIN_SWIPE_DISTANCE && deltay < SwipeConstants.MAX_VERTICAL_DEVIATION && velo > SwipeConstants.MIN_SWIPE_VELOCITY) {
                     if (e1.getRawX() > e2.getRawX()) {
-                        callback.onSwipe(id,2);
-                    } else if (e1.getRawX() < e2.getRawX()) {
-                        callback.onSwipe(id,1);
+                        callback.onSwipe(id,SwipeConstants.DIRECTION_LEFT);
+                    } else {
+                        callback.onSwipe(id,SwipeConstants.DIRECTION_RIGHT);
                     }
                 }
                 return super.onFling(e1, e2, velocityX, velocityY);
@@ -84,9 +95,17 @@ public class WView extends WebView {
         return id;
     }
 
-    public interface SwipeCallback{
-        void onSwipe(int i,int i1);
+    // Swipe callback interface
+    public interface SwipeCallback {
+        /**
+         * Called when a swipe gesture is detected.
+         *
+         * @param webViewId The ID of the WebView
+         * @param direction The swipe direction (1 = right, 2 = left)
+         */
+        void onSwipe(int webViewId, int direction);
     }
+
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);

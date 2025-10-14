@@ -1,4 +1,4 @@
-package com.sunny.CustomWebView;
+package com.sunny.cwvutils;
 
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;

@@ -1,4 +1,4 @@
-package com.sunny.CustomWebView;
+package com.sunny.cwvutils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -14,15 +14,17 @@ public class BrowserActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startActivity(getLaunchIntent());
+        Intent launch = getLaunchIntent();
+        if(launch != null){
+            startActivity(launch);
+        }
         finish();
     }
 
     private Intent getLaunchIntent(){
         try {
-            SharedPreferences sharedPreferences = getSharedPreferences("CustomWebView", 0);
+            SharedPreferences sharedPreferences = getSharedPreferences("BrowserPromptHelper", 0);
             String mScreen = sharedPreferences.getString("scrName", "");
-            Log.d("DeepLink",mScreen);
             Intent intent = mScreen.isEmpty() ? getPackageManager().getLaunchIntentForPackage(getPackageName()) : new Intent();
             if (!mScreen.isEmpty()){
                 intent.setClassName(this,mScreen);

@@ -1,4 +1,4 @@
-package com.sunny.CustomWebView;
+package com.sunny.cwvutils;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -57,7 +57,10 @@ import com.google.appinventor.components.runtime.OnNewIntentListener;
         })
 @SimpleObject(external=true)
 public class BrowserPromptHelper extends AndroidNonvisibleComponent implements OnNewIntentListener {
+    private static final String TAG = "BrowserPromptHelper";
+
     public Activity activity;
+
     public BrowserPromptHelper(ComponentContainer container){
         super(container.$form());
         activity = container.$context();
@@ -73,10 +76,11 @@ public class BrowserPromptHelper extends AndroidNonvisibleComponent implements O
 
     @SimpleFunction(description = "")
     public void RegisterScreen(String screenName,String startValue){
-        SharedPreferences.Editor edit = form.getSharedPreferences("CustomWebView", 0).edit();
-        String replaceAll = this.form.getClass().getName().replaceAll(this.form.getClass().getSimpleName(), screenName);
-        edit.putString("scrName", replaceAll).apply();
-        edit.putString("strtvlu", startValue).apply();
+        SharedPreferences.Editor edit = form.getSharedPreferences(TAG, 0).edit();
+        String replaceAll = this.form.getClass().getName().replace(this.form.getClass().getSimpleName(), screenName);
+        edit.putString("scrName", replaceAll);
+        edit.putString("strtvlu", startValue);
+        edit.apply();
     }
     @SimpleFunction(description = "Returns the url which started the current activity")
     public String GetStartUrl(){
