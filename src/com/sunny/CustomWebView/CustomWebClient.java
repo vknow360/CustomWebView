@@ -35,7 +35,6 @@ public class CustomWebClient extends WebViewClient {
     }
 
 
-    @SuppressWarnings("deprecation")
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
         return handleUrlOverride(url);
@@ -69,11 +68,19 @@ public class CustomWebClient extends WebViewClient {
             return handleAppRequest(request.getUrl().toString());
         }
 
-        if (AdBlocker.isEnabled() && !AdBlocker.isWhitelisted(url) && AdBlocker.isAd(url)) {
-            return AdBlocker.createEmptyResourceForUrl(url);
+        // Enhanced ad blocking with resource type detection
+        if (AdBlocker.isEnabled()) {
+            FilterRule.ResourceType resourceType = getResourceType(url, request);
+            // Use topLevelHost to construct page URL (safe for background thread)
+            String pageUrl = getPageUrlSafe();
+            
+            if (AdBlocker.isAd(url, pageUrl, resourceType)) {
+                return AdBlocker.createEmptyResourceForUrl(url);
+            }
         }
         return super.shouldInterceptRequest(view, request);
     }
+    
     @SuppressWarnings("deprecation")
     @Nullable
     @Override
@@ -81,10 +88,89 @@ public class CustomWebClient extends WebViewClient {
         if (url.startsWith("http://localhost/") || url.startsWith(ASSET_PREFIX)) {
             return handleAppRequest(url);
         }
-        if (AdBlocker.isEnabled() && !AdBlocker.isWhitelisted(url) && AdBlocker.isAd(url)) {
-            return AdBlocker.createEmptyResourceForUrl(url);
+        
+        // Enhanced ad blocking with resource type detection
+        if (AdBlocker.isEnabled()) {
+            FilterRule.ResourceType resourceType = getResourceType(url, null);
+            // Use topLevelHost to construct page URL (safe for background thread)
+            String pageUrl = getPageUrlSafe();
+            
+            if (AdBlocker.isAd(url, pageUrl, resourceType)) {
+                return AdBlocker.createEmptyResourceForUrl(url);
+            }
         }
         return super.shouldInterceptRequest(view, url);
+    }
+    
+    /**
+     * Get page URL safely without calling WebView methods (thread-safe)
+     */
+    private String getPageUrlSafe() {
+        String host = topLevelHost;
+        if (host != null && !host.isEmpty()) {
+            return "https://" + host;
+        }
+        return null;
+    }
+    
+    /**
+     * Detect resource type from URL and request
+     */
+    private FilterRule.ResourceType getResourceType(String url, WebResourceRequest request) {
+        if (url == null) {
+            return FilterRule.ResourceType.OTHER;
+        }
+        
+        String lowerUrl = url.toLowerCase();
+        
+        // Check file extension
+        if (lowerUrl.contains(".js")) {
+            return FilterRule.ResourceType.SCRIPT;
+        } else if (lowerUrl.contains(".css")) {
+            return FilterRule.ResourceType.STYLESHEET;
+        } else if (lowerUrl.contains(".png") || lowerUrl.contains(".jpg") || 
+                   lowerUrl.contains(".jpeg") || lowerUrl.contains(".gif") || 
+                   lowerUrl.contains(".webp") || lowerUrl.contains(".svg") ||
+                   lowerUrl.contains(".ico")) {
+            return FilterRule.ResourceType.IMAGE;
+        } else if (lowerUrl.contains(".woff") || lowerUrl.contains(".woff2") || 
+                   lowerUrl.contains(".ttf") || lowerUrl.contains(".eot")) {
+            return FilterRule.ResourceType.FONT;
+        } else if (lowerUrl.contains(".mp4") || lowerUrl.contains(".webm") || 
+                   lowerUrl.contains(".mp3") || lowerUrl.contains(".ogg")) {
+            return FilterRule.ResourceType.MEDIA;
+        }
+        
+        // Check by request headers if available (API 21+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && request != null) {
+            Map<String, String> headers = request.getRequestHeaders();
+            if (headers != null) {
+                String accept = headers.get("Accept");
+                if (accept != null) {
+                    accept = accept.toLowerCase();
+                    if (accept.contains("text/css")) {
+                        return FilterRule.ResourceType.STYLESHEET;
+                    } else if (accept.contains("image/")) {
+                        return FilterRule.ResourceType.IMAGE;
+                    } else if (accept.contains("application/javascript") || 
+                               accept.contains("text/javascript")) {
+                        return FilterRule.ResourceType.SCRIPT;
+                    } else if (accept.contains("font/") || accept.contains("application/font")) {
+                        return FilterRule.ResourceType.FONT;
+                    } else if (accept.contains("video/") || accept.contains("audio/")) {
+                        return FilterRule.ResourceType.MEDIA;
+                    }
+                }
+            }
+        }
+        
+        // Check for XHR/Fetch requests
+        if (lowerUrl.contains("/api/") || lowerUrl.contains("/ajax/") || 
+            lowerUrl.contains(".json")) {
+            return FilterRule.ResourceType.XMLHTTPREQUEST;
+        }
+        
+        return FilterRule.ResourceType.OTHER;
     }
 
     @Override

@@ -524,6 +524,130 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     public void ClearAdBlockerData() {
         AdBlocker.clear();
     }
+    
+    // ========== NEW ENHANCED AD BLOCKER API ==========
+    
+    @SimpleFunction(description = "Initialize AdBlocker with context (required for loading filter lists from assets)")
+    public void InitAdBlocker() {
+        AdBlocker.init(context);
+    }
+    
+    @SimpleFunction(description = "Load filter list from app assets. Use callback blocks to handle success/error.")
+    public void LoadFilterListFromAsset(final String assetPath) {
+        AdBlocker.loadFilterListFromAsset(assetPath, new FilterListLoader.LoadCallback() {
+            @Override
+            public void onSuccess(List<String> rules, String source) {
+                OnFilterListLoaded(rules.size(), source);
+            }
+            
+            @Override
+            public void onError(String error, String source) {
+                OnFilterListError(error, source);
+            }
+            
+            @Override
+            public void onProgress(int loaded, String source) {
+                OnFilterListProgress(loaded, source);
+            }
+        });
+    }
+    
+    @SimpleFunction(description = "Load filter list from external URL. Use callback events to handle success/error.")
+    public void LoadFilterListFromUrl(final String url) {
+        AdBlocker.loadFilterListFromUrl(url, new FilterListLoader.LoadCallback() {
+            @Override
+            public void onSuccess(List<String> rules, String source) {
+                OnFilterListLoaded(rules.size(), source);
+            }
+            
+            @Override
+            public void onError(String error, String source) {
+                OnFilterListError(error, source);
+            }
+            
+            @Override
+            public void onProgress(int loaded, String source) {
+                OnFilterListProgress(loaded, source);
+            }
+        });
+    }
+    
+    @SimpleFunction(description = "Load filter list from file path. Use callback events to handle success/error.")
+    public void LoadFilterListFromFile(final String filePath) {
+        AdBlocker.loadFilterListFromFile(filePath, new FilterListLoader.LoadCallback() {
+            @Override
+            public void onSuccess(List<String> rules, String source) {
+                OnFilterListLoaded(rules.size(), source);
+            }
+            
+            @Override
+            public void onError(String error, String source) {
+                OnFilterListError(error, source);
+            }
+            
+            @Override
+            public void onProgress(int loaded, String source) {
+                OnFilterListProgress(loaded, source);
+            }
+        });
+    }
+    
+    @SimpleFunction(description = "Load default minimal filter list with common ad domains")
+    public void LoadDefaultFilterList() {
+        AdBlocker.loadDefaultFilters();
+    }
+    
+    @SimpleFunction(description = "Add custom filter rules in AdBlock Plus format (e.g., ||example.com^, /ads/*, etc.)")
+    public void AddFilterRules(String rulesString) {
+        AdBlocker.addFilterRules(rulesString);
+    }
+    
+    @SimpleFunction(description = "Add a single filter rule in AdBlock Plus format")
+    public void AddFilterRule(String rule) {
+        AdBlocker.addFilterRule(rule);
+    }
+    
+    @SimpleFunction(description = "Get total number of filter rules loaded")
+    public int GetFilterRulesCount() {
+        return AdBlocker.getBlockedHostsCount();
+    }
+    
+    @SimpleFunction(description = "Get total number of blocked requests")
+    public int GetBlockedRequestsCount() {
+        return AdBlocker.getBlockedRequestsCount();
+    }
+    
+    @SimpleFunction(description = "Get total number of allowed requests")
+    public int GetAllowedRequestsCount() {
+        return AdBlocker.getAllowedRequestsCount();
+    }
+    
+    @SimpleFunction(description = "Get detailed AdBlocker statistics")
+    public String GetAdBlockerDetailedStats() {
+        return AdBlocker.getStats();
+    }
+    
+    @SimpleFunction(description = "Clear all filter rules but keep whitelist and settings")
+    public void ClearFilterRules() {
+        AdBlocker.clearRules();
+    }
+    
+    @SimpleEvent(description = "Event fired when a filter list is successfully loaded")
+    public void OnFilterListLoaded(int rulesCount, String source) {
+        EventDispatcher.dispatchEvent(this, "OnFilterListLoaded", rulesCount, source);
+    }
+    
+    @SimpleEvent(description = "Event fired when filter list loading fails")
+    public void OnFilterListError(String error, String source) {
+        EventDispatcher.dispatchEvent(this, "OnFilterListError", error, source);
+    }
+    
+    @SimpleEvent(description = "Event fired during filter list loading to show progress")
+    public void OnFilterListProgress(int loaded, String source) {
+        EventDispatcher.dispatchEvent(this, "OnFilterListProgress", loaded, source);
+    }
+    
+    // ========== END NEW ENHANCED AD BLOCKER API ==========
 
     @SimpleProperty(description = "Sets whether the WebView requires a user gesture to play media")
     public void AutoplayMedia(boolean bool) {
