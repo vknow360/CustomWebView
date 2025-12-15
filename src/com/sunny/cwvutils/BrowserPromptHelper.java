@@ -21,7 +21,7 @@ import com.google.appinventor.components.runtime.OnNewIntentListener;
 
 @DesignerComponent(
         version = 13,
-        versionName = "13",
+        versionName = "1.3",
         description ="Helper class of CustomWebView extension to add app to browsers list<br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,

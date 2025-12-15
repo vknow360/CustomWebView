@@ -1,0 +1,179 @@
+! Title: uBlock filters – Mobile
+! Last modified: %timestamp%
+! Description: Filters optimized for uBlock, to be used along EasyList
+! Homepage: https://github.com/uBlockOrigin/uAssets
+! License: https://github.com/uBlockOrigin/uAssets/blob/master/LICENSE
+!
+! GitHub issues: https://github.com/uBlockOrigin/uAssets/issues
+! GitHub pull requests: https://github.com/uBlockOrigin/uAssets/pulls
+
+!----- 2020 -----
+! https://github.com/uBlockOrigin/uBlock-discussions/discussions/310
+! https://github.com/AdguardTeam/AdguardFilters/issues/75829
+! https://github.com/AdguardTeam/AdguardFilters/issues/85997
+! https://github.com/AdguardTeam/AdguardFilters/issues/87085
+xnxx.com,xvideos.com###ad-header-mobile
+jprime.jp##.ad-overlay
+apkdone.com##.adplaceholder-top
+cyclehack.jp,gogo-miyagi.com,izuhack.akao-hotel.co.jp,nap-camp.com,runhack.jp,tsurihack.com,yamahack.com###ad-overlay
+m.washingtontimes.com##.mrf-adv__wrapper
+fortune.com##.amp-ad-wrapper
+fortune.com##.amp-ad-wrapper-dianomi
+wallpaperbetter.com##.lst_ads
+variety.com##.admz
+bakusai.com##.adSection
+gamereactor.asia,gamereactor.cn,gamereactor.cz,gamereactor.de,gamereactor.dk,gamereactor.es,gamereactor.eu,gamereactor.fi,gamereactor.fr,gamereactor.it,gamereactor.jp,gamereactor.kr,gamereactor.nl,gamereactor.no,gamereactor.pl,gamereactor.pt,gamereactor.se###ad_topScroller
+! player on clipx.tv
+xxxporns.org##.adBlock
+! https://github.com/AdguardTeam/AdguardFilters/commit/b2cba1f3abcd98699eac26bab83b89d0eed75370
+a-eroland.net,hhmanga.com,nyahentai.re##.__isboostReturnAd
+
+!----- 2023 -----
+facebook.com#?#div[data-status-bar-color] > div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"]:has(> div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"] div[data-mcomponent="TextArea"] .native-text > span:contains(/(Sponsored|Gesponsert|Sponsorlu|Sponsorowane|Ispoonsara godhameera|Geborg|Bersponsor|Ditaja|Disponsori|Giisponsoran|Sponzorováno|Sponsoreret|Publicidad|May Sponsor|Sponsorisée|Oipytyvôva|Ɗaukar Nayin|Sponzorirano|Uterwa inkunga|Sponsorizzato|Imedhaminiwa|Hirdetés|Misy Mpiantoka|Gesponsord|Sponset|Patrocinado|Patrocinado|Sponsorizat|Sponzorované|Sponsoroitu|Sponsrat|Được tài trợ|Χορηγούμενη|Спонсорирано|Спонзорирано|Ивээн тэтгэсэн|Реклама|Спонзорисано|במימון|سپانسرڈ|دارای پشتیبانی مالی|ስፖንሰር የተደረገ|प्रायोजित|ተደረገ|प|प्रायोजित|স্পনসর্ড|ਪ੍ਰਯੋਜਿਤ|પ્રાયોજિત|ପ୍ରାୟୋଜିତ|செய்யப்பட்ட செய்யப்பட்ட|చేయబడినది చేయబడినది|ಪ್ರಾಯೋಜಿಸಲಾಗಿದೆ|ചെയ്‌തത് ചെയ്‌തത്|ලද ලද ලද|สนับสนุน สนับสนุน รับ สนับสนุน สนับสนุน|ကြော်ငြာ ကြော်ငြာ|ឧបត្ថម្ភ ឧបត្ថម្ភ ឧបត្ថម្ភ|광고|贊助|赞助内容|広告|സ്‌പോൺസർ ചെയ്‌തത്)/)):not(:has([data-tracking-duration-id]))
+facebook.com#?#div[data-status-bar-color] > div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"]:has(> div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"] div[data-mcomponent="TextArea"] .native-text > span:contains(/(Sponsored|Gesponsert|Sponsorlu|Sponsorowane|Ispoonsara godhameera|Geborg|Bersponsor|Ditaja|Disponsori|Giisponsoran|Sponzorováno|Sponsoreret|Publicidad|May Sponsor|Sponsorisée|Oipytyvôva|Ɗaukar Nayin|Sponzorirano|Uterwa inkunga|Sponsorizzato|Imedhaminiwa|Hirdetés|Misy Mpiantoka|Gesponsord|Sponset|Patrocinado|Patrocinado|Sponsorizat|Sponzorované|Sponsoroitu|Sponsrat|Được tài trợ|Χορηγούμενη|Спонсорирано|Спонзорирано|Ивээн тэтгэсэн|Реклама|Спонзорисано|במימון|سپانسرڈ|دارای پشتیبانی مالی|ስፖንሰር የተደረገ|प्रायोजित|ተደረገ|प|प्रायोजित|স্পনসর্ড|ਪ੍ਰਯੋਜਿਤ|પ્રાયોજિત|ପ୍ରାୟୋଜିତ|செய்யப்பட்ட செய்யப்பட்ட|చేయబడినది చేయబడినది|ಪ್ರಾಯೋಜಿಸಲಾಗಿದೆ|ചെയ്‌തത് ചെയ്‌തത്|ලද ලද ලද|สนับสนุน สนับสนุน รับ สนับสนุน สนับสนุน|ကြော်ငြာ ကြော်ငြာ|ឧបត្ថម្ភ ឧបត្ថម្ភ ឧបត្ថម្ភ|광고|贊助|赞助内容|広告|സ്‌പോൺസർ ചെയ്‌തത്)/)):not(:has([data-tracking-duration-id])) + .m:is(.bg-s2, .bg-s3, .bg-s4):has(+ .m:is(.bg-s2, .bg-s3, .bg-s4) + .m:not(:has(.m:empty)))
+facebook.com#?#div[data-status-bar-color] > div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"]:has(> div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"] div[data-mcomponent="TextArea"] .native-text > span:contains(/(Sponsored|Gesponsert|Sponsorlu|Sponsorowane|Ispoonsara godhameera|Geborg|Bersponsor|Ditaja|Disponsori|Giisponsoran|Sponzorováno|Sponsoreret|Publicidad|May Sponsor|Sponsorisée|Oipytyvôva|Ɗaukar Nayin|Sponzorirano|Uterwa inkunga|Sponsorizzato|Imedhaminiwa|Hirdetés|Misy Mpiantoka|Gesponsord|Sponset|Patrocinado|Patrocinado|Sponsorizat|Sponzorované|Sponsoroitu|Sponsrat|Được tài trợ|Χορηγούμενη|Спонсорирано|Спонзорирано|Ивээн тэтгэсэн|Реклама|Спонзорисано|במימון|سپانسرڈ|دارای پشتیبانی مالی|ስፖንሰር የተደረገ|प्रायोजित|ተደረገ|प|प्रायोजित|স্পনসর্ড|ਪ੍ਰਯੋਜਿਤ|પ્રાયોજિત|ପ୍ରାୟୋଜିତ|செய்யப்பட்ட செய்யப்பட்ட|చేయబడినది చేయబడినది|ಪ್ರಾಯೋಜಿಸಲಾಗಿದೆ|ചെയ്‌തത് ചെയ്‌തത്|ලද ලද ලද|สนับสนุน สนับสนุน รับ สนับสนุน สนับสนุน|ကြော်ငြာ ကြော်ငြာ|ឧបត្ថម្ភ ឧបត្ថម្ភ ឧបត្ថម្ភ|광고|贊助|赞助内容|広告|സ്‌പോൺസർ ചെയ്‌തത്)/)):not(:has([data-tracking-duration-id])) + .m:is(.bg-s2, .bg-s3, .bg-s4) + .m:is(.bg-s2, .bg-s3, .bg-s4):has(+ .m:not(:has(.m:empty)))
+facebook.com#?#div[data-status-bar-color] > div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"]:has(> div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"] div[data-mcomponent="TextArea"] .native-text > span:contains(/(Sponsored|Gesponsert|Sponsorlu|Sponsorowane|Ispoonsara godhameera|Geborg|Bersponsor|Ditaja|Disponsori|Giisponsoran|Sponzorováno|Sponsoreret|Publicidad|May Sponsor|Sponsorisée|Oipytyvôva|Ɗaukar Nayin|Sponzorirano|Uterwa inkunga|Sponsorizzato|Imedhaminiwa|Hirdetés|Misy Mpiantoka|Gesponsord|Sponset|Patrocinado|Patrocinado|Sponsorizat|Sponzorované|Sponsoroitu|Sponsrat|Được tài trợ|Χορηγούμενη|Спонсорирано|Спонзорирано|Ивээн тэтгэсэн|Реклама|Спонзорисано|במימון|سپانسرڈ|دارای پشتیبانی مالی|ስፖንሰር የተደረገ|प्रायोजित|ተደረገ|प|प्रायोजित|স্পনসর্ড|ਪ੍ਰਯੋਜਿਤ|પ્રાયોજિત|ପ୍ରାୟୋଜିତ|செய்யப்பட்ட செய்யப்பட்ட|చేయబడినది చేయబడినది|ಪ್ರಾಯೋಜಿಸಲಾಗಿದೆ|ചെയ്‌തത് ചെയ്‌തത്|ලද ලද ලද|สนับสนุน สนับสนุน รับ สนับสนุน สนับสนุน|ကြော်ငြာ ကြော်ငြာ|ឧបត្ថម្ភ ឧបត្ថម្ភ ឧបត្ថម្ភ|광고|贊助|赞助内容|広告|സ്‌പോൺസർ ചെയ്‌തത്)/)):not(:has([data-tracking-duration-id])) + .m:is(.bg-s2, .bg-s3, .bg-s4) + .m:is(.bg-s2, .bg-s3, .bg-s4) + .m:not(:has(.m:empty))
+facebook.com#?#div[data-status-bar-color] > div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"]:has(> div[data-mcomponent="MContainer"] > div[data-mcomponent="MContainer"] div[data-mcomponent="TextArea"] .native-text > span:contains(/(Sponsored|Gesponsert|Sponsorlu|Sponsorowane|Ispoonsara godhameera|Geborg|Bersponsor|Ditaja|Disponsori|Giisponsoran|Sponzorováno|Sponsoreret|Publicidad|May Sponsor|Sponsorisée|Oipytyvôva|Ɗaukar Nayin|Sponzorirano|Uterwa inkunga|Sponsorizzato|Imedhaminiwa|Hirdetés|Misy Mpiantoka|Gesponsord|Sponset|Patrocinado|Patrocinado|Sponsorizat|Sponzorované|Sponsoroitu|Sponsrat|Được tài trợ|Χορηγούμενη|Спонсорирано|Спонзорирано|Ивээн тэтгэсэн|Реклама|Спонзорисано|במימון|سپانسرڈ|دارای پشتیبانی مالی|ስፖንሰር የተደረገ|प्रायोजित|ተደረገ|प|प्रायोजित|স্পনসর্ড|ਪ੍ਰਯੋਜਿਤ|પ્રાયોજિત|ପ୍ରାୟୋଜିତ|செய்யப்பட்ட செய்யப்பட்ட|చేయబడినది చేయబడినది|ಪ್ರಾಯೋಜಿಸಲಾಗಿದೆ|ചെയ്‌തത് ചെയ്‌തത്|ලද ලද ලද|สนับสนุน สนับสนุน รับ สนับสนุน สนับสนุน|ကြော်ငြာ ကြော်ငြာ|ឧបត្ថម្ភ ឧបត្ថម្ភ ឧបត្ថម្ភ|광고|贊助|赞助内容|広告|സ്‌പോൺസർ ചെയ്‌തത്)/)):not(:has([data-tracking-duration-id])) + .m:is(.bg-s2, .bg-s3, .bg-s4) + .m:is(.bg-s2, .bg-s3, .bg-s4) + .m:not(:has(.m:empty)) + .m:not(:has(.m:empty)):has(+ .m .m[data-mcomponent$="TextArea"]:empty)
+! complementary rules when has-text stopped working
+m.facebook.com,www.facebook.com##:matches-path(/^\/(\?locale=[a-z]+_[A-Z]+)?$/) #screen-root > :not(.bg-s2) .m[data-type="vscroller"] > :is(.bg-s2, .bg-s3, .bg-s4):has(+ .m + :is(.bg-s2, .bg-s3, .bg-s4) > .m > .m .nb[style*="inset(0"] > .m[style*="margin-top:1px;"][style*="margin-left:1px;"]:is([style*="height:32px;"], [style*="height:35px;"]) div[data-mcomponent$="TextArea"]:not(:empty))
+m.facebook.com,www.facebook.com##:matches-path(/^\/(\?locale=[a-z]+_[A-Z]+)?$/) #screen-root > :not(.bg-s2) .m[data-type="vscroller"] > :is(.bg-s2, .bg-s3, .bg-s4):has(+ :is(.bg-s2, .bg-s3, .bg-s4) > .m > .m .nb[style*="inset(0"] > .m[style*="margin-top:1px;"][style*="margin-left:1px;"]:is([style*="height:32px;"], [style*="height:35px;"]):not(:empty))
+m.facebook.com,www.facebook.com##:matches-path(/^\/(\?locale=[a-z]+_[A-Z]+)?$/) #screen-root > :not(.bg-s2) .m[data-type="vscroller"] > :is(.bg-s2, .bg-s3, .bg-s4):has(> .m > .m .nb[style*="inset(0"] > .m[style*="margin-top:1px;"][style*="margin-left:1px;"]:is([style*="height:32px;"], [style*="height:35px;"]))
+m.facebook.com,www.facebook.com##:matches-path(/^\/(\?locale=[a-z]+_[A-Z]+)?$/) #screen-root > :not(.bg-s2) .m[data-type="vscroller"] > :is(.bg-s2, .bg-s3, .bg-s4):has(> .m > .m .nb[style*="inset(0"] > .m[style*="margin-top:1px;"][style*="margin-left:1px;"]:is([style*="height:32px;"], [style*="height:35px;"])) + .m:not(:has(.m:empty))
+m.facebook.com,www.facebook.com##:matches-path(/^\/(\?locale=[a-z]+_[A-Z]+)?$/) #screen-root > :not(.bg-s2) .m[data-type="vscroller"] > :is(.bg-s2, .bg-s3, .bg-s4):has(> .m > .m .nb[style*="inset(0"] > .m[style*="margin-top:1px;"][style*="margin-left:1px;"]:is([style*="height:32px;"], [style*="height:35px;"])) + .m:not(:has(.m:empty)) + .m:has(div[data-mcomponent$="TextArea"]:not(:empty)):has(+ .m .m[data-mcomponent$="TextArea"]:empty)
+
+! https://github.com/uBlockOrigin/uAssets/issues/17817
+lookmovie2.to##div[class^="native-ad-"]
+
+! https://github.com/uBlockOrigin/uAssets/issues/17905
+m.timesofindia.com##[href*="app.goo.gl"]
+
+! https://github.com/uBlockOrigin/uAssets/issues/16340
+xda-developers.com##.ad-current
+forum.xda-developers.com###xdadevelopers_leaderboard_atf
+xe.com##.advertSlot
+investing.com##[class^="ad_ad-sticky_"]
+
+! https://www.zdnet.com/ placeholder
+zdnet.com##.c-adDisplay_container
+zdnet.com##.c-adSkyBox
+
+! https://www.nytimes.com/2006/10/09/business/09cnd-deal.html
+nytimes.com###acm-wrapper
+
+! https://github.com/uBlockOrigin/uAssets/issues/18325
+*##.ads_all > .ads_w
+
+! https://github.com/uBlockOrigin/uAssets/issues/18397
+liquipedia.net##.mobile-sticky-ad
+liquipedia.net##body.mobile-sticky-ad-is-active:style(padding: 3.125rem 0 0 0 !important;)
+liquipedia.net##body.mobile-sticky-ad-is-active .main-nav:style(top: 0 !important;)
+liquipedia.net##body.mobile-sticky-ad-is-active .main-nav .brand-menu:style(top: 3.125rem !important;)
+
+! https://www.reddit.com/r/uBlockOrigin/comments/1495nei/
+m.dcinside.com,upload.dcinside.com##+js(set-cookie, _ga, OK, , reload, 1)
+
+! https://www.reddit.com/r/uBlockOrigin/comments/14bvy9r/
+@@||securepubads.g.doubleclick.net/tag/js/gpt.js$script,domain=thedailybeast.com
+thedailybeast.com##^html > head > meta[name="template"]:not([content="cheat"]):upward(1) > script[src*="doubleclick"]
+
+! interstitial if views >= interstitial.counter
+pornhub.com##+js(set-cookie, views, 1)
+pornhub.*##.watchpageAd
+
+! Ignore generic cosmetic filters mitigation
+apnews.com##.SovrnAd
+zaim.net##.ad-footer
+avclub.com,clickhole.com,deadspin.com,gizmodo.com,jalopnik.com,jezebel.com,kotaku.com,lifehacker.com,qz.com,splinternews.com,theinventory.com,theonion.com,theroot.com,thetakeout.com###splashy-ad-container-top
+huffpost.com,huffingtonpost.jp##.advertisement-holder
+4wank.com###pause-ads
+javpop.link##[href^="https://rapidgator.net/article/premium/ref/"]
+senzuri.tube##.video-page__adv
+
+! https://github.com/AdguardTeam/AdguardFilters/issues/156544
+tr.ign.com##.articleBody:style(margin-top: 80px !important;)
+
+! https://github.com/uBlockOrigin/uAssets/issues/19520
+m.apkpure.com##.ad-adsense.js-ad-slot
+fxstreet.com##.fxs_stickyAd-mobile
+apkpure.com##.ad-box-auto
+
+! https://www.reddit.com/r/uBlockOrigin/comments/16y31qu/ezvid_ads_not_blocked_in_ublock_origin_for/
+*##.ez-video-wrap
+
+! https://github.com/uBlockOrigin/uAssets/issues/19721#issuecomment-1864681386
+correiobraziliense.com.br##.publi
+poder360.com.br##.box-advertising
+
+! https://github.com/AdguardTeam/AdguardFilters/issues/169090
+4hu.tv##.wrap > #btmBox
+
+! https://github.com/uBlockOrigin/uAssets/issues/21924
+wunderground.com##.ad-wrap
+
+! https://github.com/easylist/easylist/commit/6a05bfc624e075256f14e9a7753d7187c50f886d
+mmtv01.xyz,spankbang.mov###pop.div_pop
+
+! https://github.com/uBlockOrigin/uAssets/issues/22973
+pages.lazada.co.id##.lzd-call-app-download-popup
+
+! https://github.com/AdguardTeam/AdguardFilters/issues/179947
+speedtest.net###modal-overlay
+speedtest.net##div[data-view-name="mobile"] div.mobile-pretest
+
+! https://bola.okezone.com/read/2024/06/04/46/3016964/breaking-news-kylian-mbappe-resmi-gabung-real-madrid
+okezone.com###app:style(margin-top: 0px !important;)
+
+! https://github.com/uBlockOrigin/uAssets/issues/4523
+! https://github.com/brave/adblock-lists/pull/1850
+mercurynews.com###mobile-adhesion
+
+! https://github.com/uBlockOrigin/uAssets/issues/25405
+yahoo.com##.native-ad-item
+
+! timeanddate.com ad leftover
+timeanddate.com###ad-wrap
+
+! https://github.com/uBlockOrigin/uAssets/issues/23285
+twivideo.net##^script:has-text(/videoInstArea|randomImageUrl/)
+
+! https://github.com/uBlockOrigin/uAssets/issues/26379#issuecomment-2529670250
+wetter.com##[class*="adSlot"]
+wetter.com##.layout:has(.advert-notice)
+wetter.com##[style="display: block !important; bottom: 0px; top: unset !important;"]
+
+! https://github.com/uBlockOrigin/uAssets/issues/20742
+wh40k.lexicanum.com##.collapsible-block:not(.vm-placement):style(display: block !important)
+wh40k.lexicanum.com##.vm-placement
+
+! https://jbbs.shitaraba.net/bbs/read.cgi/internet/25463/1618326670/249
+watch.impress.co.jp##+js(trusted-rpnt, script, /^ipc\.loader\.queue\.jquery(\.push\(function\(\)\{\s*ipc\.loader\.script\(.+\/ipc\.watch\.js.+)/, ipc.loader.queue.ready$1)
+
+! https://github.com/uBlockOrigin/uAssets/issues/27524
+timesofindia.indiatimes.com##+js(set, Object.prototype.isAdActive, false)
+
+! https://github.com/uBlockOrigin/uAssets/issues/20361
+redd.tube##+js(set, Object.prototype.vastOptions, {})
+redd.tube###closeable_widget
+
+! https://github.com/AdguardTeam/AdguardFilters/commit/3ff29bb24a3adc6bc72149e7663ce2bbe96411e0
+mdpr.jp##+js(trusted-set-attr, #gn-rwd-target-hidden, class, rewareded)
+
+! Fixes gap caused by removed ad
+! https://github.com/uBlockOrigin/uAssets/issues/29060
+outlook.live.com##main > div[style] .vPfg_:has(.wOYnU) ~ *:style(transform: translateY(-80px) !important)
+
+! https://github.com/uBlockOrigin/uAssets/issues/27415
+!#if env_safari
+||googlevideo.com/videoplayback*ctier=L&*%2Cxpc%2Cctier%2C$xhr,3p,domain=m.youtube.com|music.youtube.com
+!#endif
+
+! https://github.com/uBlockOrigin/uAssets/issues/23691#issuecomment-3291721218
+dailymotion.com##+js(xml-prune, [breakId], , _VMAP_)
+dailymotion.com##+js(json-prune-fetch-response, advertising, , propsToMatch, /player/metadata)
+dailymotion.com##+js(json-prune-xhr-response, advertising, , propsToMatch, .json)
+
+! https://github.com/uBlockOrigin/uAssets/pull/30275
+hurriyet.com.tr##.mobileMasthead
+
+! https://github.com/uBlockOrigin/uAssets/issues/30806
+yts.mx##.home-content > div[class]:not([id]):has(> div > a[rel="noindex, nofollow"])

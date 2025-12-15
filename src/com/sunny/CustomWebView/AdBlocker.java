@@ -2,72 +2,55 @@ package com.sunny.CustomWebView;
 
 import android.content.Context;
 import android.webkit.WebResourceResponse;
+import android.webkit.WebView;
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import android.net.Uri;
+
 /**
- * Advanced AdBlocker with support for AdBlock Plus / uBlock Origin filter syntax
- * Features:
- * - Token-based matching for fast filtering
- * - Bloom filters for quick rejection
- * - Mobile-optimized with limited memory footprint
- * - Support for filter lists from assets and URLs
- * - Exception rules and important rules
- * - Resource type filtering
- * - Third-party request detection
+ * Advanced AdBlocker using High-Performance Flat Engine.
  */
 public class AdBlocker {
 
     private static AdBlocker instance;
     private static final AtomicBoolean enabled = new AtomicBoolean(false);
-    
-    // Core filter engine
-    private final FilterEngine filterEngine;
+
+    private final FlatFilterEngine filterEngine;
     private FilterListLoader filterListLoader;
-    
-    // Context for loading filter lists
-    private Context context;
+    private List<String> cosmeticRules;
 
     private AdBlocker() {
-        this.filterEngine = new FilterEngine();
+        this.filterEngine = new FlatFilterEngine();
+        this.cosmeticRules = new ArrayList<>();
     }
 
-    public static AdBlocker getInstance() {
-        synchronized (AdBlocker.class) {
-            if (instance == null) {
-                instance = new AdBlocker();
-            }
+    public static synchronized AdBlocker getInstance() {
+        if (instance == null) {
+            instance = new AdBlocker();
         }
         return instance;
     }
 
-    /**
-     * Initialize with context (required for loading filter lists from assets)
-     */
     public static void init(Context context) {
-        getInstance().context = context;
         getInstance().filterListLoader = new FilterListLoader(context);
     }
-    
-    /**
-     * LEGACY: Initialize with comma-separated host list (backward compatible)
-     * Converts to new filter format
-     */
+
     public static void init(String hosts) {
-        if (hosts == null || hosts.isEmpty()) {
+        if (hosts == null || hosts.isEmpty())
             return;
+        String[] rules = hosts.split(",");
+        for (String rule : rules) {
+            if (!rule.isEmpty()) {
+                getInstance().filterEngine.addRule("||" + rule.trim() + "^", 0, 0, rule.trim());
+            }
         }
-        
-        // Convert legacy format to AdBlock rules
-        List<String> rules = FilterListLoader.convertLegacyHosts(hosts);
-        getInstance().filterEngine.addRules(rules);
     }
-    
-    /**
-     * LEGACY: Initialize asynchronously (backward compatible)
-     */
+
     public static void initAsync(final String hosts) {
         new Thread(new Runnable() {
             @Override
@@ -76,385 +59,308 @@ public class AdBlocker {
             }
         }).start();
     }
-    
-    /**
-     * Load filter list from app assets
-     */
+
     public static void loadFilterListFromAsset(String assetPath, final FilterListLoader.LoadCallback callback) {
         final AdBlocker adBlocker = getInstance();
-        
         if (adBlocker.filterListLoader == null) {
-            if (callback != null) {
-                callback.onError("AdBlocker not initialized with context. Call init(Context) first.", assetPath);
-            }
+            if (callback != null)
+                callback.onError("AdBlocker not initialized", assetPath);
             return;
         }
-        
+
         adBlocker.filterListLoader.loadFromAsset(assetPath, new FilterListLoader.LoadCallback() {
             @Override
             public void onSuccess(List<String> rules, String source) {
-                adBlocker.filterEngine.addRules(rules);
-                if (callback != null) {
+                adBlocker.addRules(rules);
+                if (callback != null)
                     callback.onSuccess(rules, source);
-                }
             }
-            
+
             @Override
             public void onError(String error, String source) {
-                if (callback != null) {
+                if (callback != null)
                     callback.onError(error, source);
-                }
             }
-            
+
             @Override
             public void onProgress(int loaded, String source) {
-                if (callback != null) {
+                if (callback != null)
                     callback.onProgress(loaded, source);
-                }
             }
         });
     }
-    
-    /**
-     * Load filter list from external URL
-     */
+
     public static void loadFilterListFromUrl(String url, final FilterListLoader.LoadCallback callback) {
         final AdBlocker adBlocker = getInstance();
-        
         if (adBlocker.filterListLoader == null) {
-            if (callback != null) {
-                callback.onError("AdBlocker not initialized with context. Call init(Context) first.", url);
-            }
+            if (callback != null)
+                callback.onError("AdBlocker not initialized", url);
             return;
         }
-        
+
         adBlocker.filterListLoader.loadFromUrl(url, new FilterListLoader.LoadCallback() {
             @Override
             public void onSuccess(List<String> rules, String source) {
-                adBlocker.filterEngine.addRules(rules);
-                if (callback != null) {
+                adBlocker.addRules(rules);
+                if (callback != null)
                     callback.onSuccess(rules, source);
-                }
             }
-            
+
             @Override
             public void onError(String error, String source) {
-                if (callback != null) {
+                if (callback != null)
                     callback.onError(error, source);
-                }
             }
-            
+
             @Override
             public void onProgress(int loaded, String source) {
-                if (callback != null) {
+                if (callback != null)
                     callback.onProgress(loaded, source);
-                }
             }
         });
     }
-    
-    /**
-     * Load filter list from file
-     */
+
     public static void loadFilterListFromFile(String filePath, final FilterListLoader.LoadCallback callback) {
         final AdBlocker adBlocker = getInstance();
-        
         if (adBlocker.filterListLoader == null) {
-            if (callback != null) {
-                callback.onError("AdBlocker not initialized with context. Call init(Context) first.", filePath);
-            }
+            if (callback != null)
+                callback.onError("AdBlocker not initialized", filePath);
             return;
         }
-        
+
         adBlocker.filterListLoader.loadFromFile(filePath, new FilterListLoader.LoadCallback() {
             @Override
             public void onSuccess(List<String> rules, String source) {
-                adBlocker.filterEngine.addRules(rules);
-                if (callback != null) {
+                adBlocker.addRules(rules);
+                if (callback != null)
                     callback.onSuccess(rules, source);
-                }
             }
-            
+
             @Override
             public void onError(String error, String source) {
-                if (callback != null) {
+                if (callback != null)
                     callback.onError(error, source);
-                }
             }
-            
+
             @Override
             public void onProgress(int loaded, String source) {
-                if (callback != null) {
+                if (callback != null)
                     callback.onProgress(loaded, source);
-                }
             }
         });
     }
-    
-    /**
-     * Load multiple filter lists
-     */
-    public static void loadMultipleFilterLists(String[] sources, boolean fromAssets, final FilterListLoader.LoadCallback callback) {
-        final AdBlocker adBlocker = getInstance();
-        
-        if (adBlocker.filterListLoader == null) {
-            if (callback != null) {
-                callback.onError("AdBlocker not initialized with context. Call init(Context) first.", "multiple");
-            }
+
+    public static void loadDefaultFilters() {
+        List<String> defaults = FilterListLoader.createDefaultRules();
+        getInstance().addRules(defaults);
+    }
+
+    private void addRules(List<String> rules) {
+        for (String rule : rules) {
+            parseAndAddRule(rule);
+        }
+    }
+
+    private void parseAndAddRule(String rule) {
+        rule = rule.trim();
+        if (rule.isEmpty() || rule.startsWith("!"))
+            return;
+
+        if (rule.contains("##")) {
+            cosmeticRules.add(rule);
             return;
         }
-        
-        adBlocker.filterListLoader.loadMultiple(sources, fromAssets, new FilterListLoader.LoadCallback() {
-            @Override
-            public void onSuccess(List<String> rules, String source) {
-                adBlocker.filterEngine.addRules(rules);
-                if (callback != null) {
-                    callback.onSuccess(rules, source);
-                }
-            }
-            
-            @Override
-            public void onError(String error, String source) {
-                if (callback != null) {
-                    callback.onError(error, source);
-                }
-            }
-            
-            @Override
-            public void onProgress(int loaded, String source) {
-                if (callback != null) {
-                    callback.onProgress(loaded, source);
-                }
-            }
-        });
-    }
-    
-    /**
-     * Load default minimal filter list
-     */
-    public static void loadDefaultFilters() {
-        List<String> defaultRules = FilterListLoader.createDefaultRules();
-        getInstance().filterEngine.addRules(defaultRules);
-    }
-    
-    /**
-     * Add custom filter rules
-     */
-    public static void addFilterRules(String[] rules) {
-        if (rules != null && rules.length > 0) {
-            getInstance().filterEngine.addRules(rules);
+
+        int type = 0; // Block
+        if (rule.startsWith("@@")) {
+            type = 1; // Exception
+            rule = rule.substring(2);
         }
-    }
-    
-    /**
-     * Add custom filter rules from string
-     */
-    public static void addFilterRules(String rulesString) {
-        List<String> rules = FilterListLoader.parseRulesString(rulesString);
-        getInstance().filterEngine.addRules(rules);
-    }
-    
-    /**
-     * Add single filter rule
-     */
-    public static void addFilterRule(String rule) {
-        FilterRule filterRule = FilterRule.parse(rule);
-        if (filterRule != null) {
-            getInstance().filterEngine.addRule(filterRule);
+
+        String domain = null;
+        long mask = 0;
+
+        int dollars = rule.lastIndexOf('$');
+        if (dollars != -1) {
+            String options = rule.substring(dollars + 1);
+            rule = rule.substring(0, dollars);
+            mask = parseOptions(options);
+        } else {
+            // No options specified
+            if (type == 0) { // Blocking rule
+                // Block everything EXCEPT main document by default (standard AdBlock behavior)
+                // This prevents blocking the page itself unless $document is strictly specified
+                mask = FlatFilterEngine.MASK_ALL_TYPES & ~FlatFilterEngine.TYPE_DOCUMENT;
+            } else { // Exception rule (@@)
+                // Exception applies to everything including document
+                mask = FlatFilterEngine.MASK_ALL_TYPES;
+            }
         }
+
+        if (rule.startsWith("||")) {
+            int end = rule.indexOf('^');
+            if (end == -1)
+                end = rule.indexOf('/');
+            if (end != -1) {
+                domain = rule.substring(2, end);
+            } else {
+                domain = rule.substring(2);
+            }
+        }
+
+        filterEngine.addRule(rule, type, mask, domain);
     }
-    
-    /**
-     * Enable/disable ad blocking
-     */
+
+    private long parseOptions(String options) {
+        long mask = 0;
+        String[] opts = options.split(",");
+        for (String o : opts) {
+            if (o.equals("script"))
+                mask |= FlatFilterEngine.TYPE_SCRIPT;
+            else if (o.equals("image"))
+                mask |= FlatFilterEngine.TYPE_IMAGE;
+            else if (o.equals("stylesheet"))
+                mask |= FlatFilterEngine.TYPE_STYLESHEET;
+            else if (o.equals("document"))
+                mask |= FlatFilterEngine.TYPE_DOCUMENT;
+            else if (o.equals("third-party"))
+                mask |= FlatFilterEngine.FLAG_THIRD_PARTY;
+        }
+        return mask;
+    }
+
+    public static boolean isAd(String url) {
+        return isAd(url, null, FlatFilterEngine.TYPE_OTHER);
+    }
+
+    public static boolean isAd(String url, String pageUrl, long resourceType) {
+        if (!enabled.get() || url == null)
+            return false;
+        return getInstance().filterEngine.shouldBlock(url, pageUrl, resourceType);
+    }
+
+    public static WebResourceResponse createEmptyResource() {
+        return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
+    }
+
+    public static WebResourceResponse createEmptyResource(String mime) {
+        return new WebResourceResponse(mime, "utf-8", new ByteArrayInputStream("".getBytes()));
+    }
+
+    public static WebResourceResponse createEmptyResourceForUrl(String url) {
+        return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
+    }
+
     public static void enable(boolean status) {
         enabled.set(status);
     }
-    
-    /**
-     * Check if ad blocking is enabled
-     */
+
     public static boolean isEnabled() {
         return enabled.get();
     }
-    
-    /**
-     * Add domain to whitelist
-     */
-    public static void addToWhitelist(String host) {
-        getInstance().filterEngine.addToWhitelist(host);
-    }
-    
-    /**
-     * Remove domain from whitelist
-     */
-    public static void removeFromWhitelist(String host) {
-        getInstance().filterEngine.removeFromWhitelist(host);
-    }
-    
-    /**
-     * Check if URL is whitelisted
-     */
-    public static boolean isWhitelisted(String url) {
-        return getInstance().filterEngine.isWhitelisted(url);
-    }
-    
-    /**
-     * DEPRECATED: Legacy method for setting regex pattern
-     * Use addFilterRule() with regex format instead: /pattern/
-     */
-    @Deprecated
-    public static void setAdPattern(String regex) {
-        if (regex != null && !regex.isEmpty()) {
-            // Convert to AdBlock regex format
-            String rule = "/" + regex + "/";
-            addFilterRule(rule);
+
+    public static void injectCosmeticHelper(WebView view) {
+        String url = view.getUrl();
+        if (url == null)
+            return;
+
+        Uri uri = Uri.parse(url);
+        String host = uri.getHost();
+        if (host == null)
+            return;
+
+        StringBuilder css = new StringBuilder();
+        int ruleCount = 0;
+
+        AdBlocker blocker = getInstance();
+        // Simple O(N) scan - optimized in future iterations if needed
+        for (String rule : blocker.cosmeticRules) {
+            String domainPart = "";
+            String selectorPart;
+
+            int sepIndex = rule.indexOf("##");
+            if (sepIndex == -1)
+                continue;
+
+            if (sepIndex > 0) {
+                // Has domain constraint: example.com##...
+                domainPart = rule.substring(0, sepIndex);
+            }
+            selectorPart = rule.substring(sepIndex + 2);
+
+            if (domainPart.isEmpty() || host.endsWith(domainPart)) {
+                if (ruleCount > 0)
+                    css.append(",");
+                css.append(selectorPart);
+                ruleCount++;
+            }
+        }
+
+        if (ruleCount > 0) {
+            String js = "(function() {" +
+                    "var style = document.createElement('style');" +
+                    "style.innerHTML = '" + css.toString() + " { display: none !important; }';" +
+                    "document.head.appendChild(style);" +
+                    "})();";
+            view.evaluateJavascript(js, null);
         }
     }
-    
-    /**
-     * Check if URL should be blocked
-     * @param url The URL to check
-     * @return true if URL matches a blocking rule
-     */
-    public static boolean isAd(String url) {
-        return isAd(url, null, FilterRule.ResourceType.OTHER);
-    }
-    
-    /**
-     * Check if URL should be blocked with context
-     * @param url The URL to check
-     * @param pageUrl The page URL (for third-party detection)
-     * @param resourceType The resource type
-     * @return true if URL matches a blocking rule
-     */
-    public static boolean isAd(String url, String pageUrl, FilterRule.ResourceType resourceType) {
-        if (!enabled.get() || url == null || url.isEmpty()) {
-            return false;
-        }
-        
-        FilterEngine.MatchResult result = getInstance().filterEngine.shouldBlock(url, pageUrl, resourceType);
-        return result.shouldBlock;
-    }
-    
-    /**
-     * Get detailed match result
-     */
-    public static FilterEngine.MatchResult checkUrl(String url, String pageUrl, FilterRule.ResourceType resourceType) {
-        if (!enabled.get() || url == null || url.isEmpty()) {
-            return FilterEngine.MatchResult.allow();
-        }
-        
-        return getInstance().filterEngine.shouldBlock(url, pageUrl, resourceType);
-    }
-    
-    /**
-     * Create empty WebResourceResponse for blocked requests
-     */
-    public WebResourceResponse createEmptyResource() {
-        return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
-    }
-    
-    /**
-     * Create empty WebResourceResponse with specific MIME type
-     */
-    public WebResourceResponse createEmptyResource(String mimeType) {
-        if (mimeType == null) {
-            mimeType = "text/plain";
-        }
-        return new WebResourceResponse(mimeType, "utf-8", new ByteArrayInputStream("".getBytes()));
-    }
-    
-    /**
-     * Create empty WebResourceResponse with MIME type guessed from URL
-     */
-    public static WebResourceResponse createEmptyResourceForUrl(String url) {
-        String mimeType = guessMimeType(url);
-        return new WebResourceResponse(mimeType, "utf-8", new ByteArrayInputStream("".getBytes()));
-    }
-    
-    /**
-     * Guess MIME type from URL extension
-     */
-    private static String guessMimeType(String url) {
-        if (url == null) return "text/plain";
-        
-        String lowerUrl = url.toLowerCase();
-        if (lowerUrl.contains(".js")) return "application/javascript";
-        if (lowerUrl.contains(".css")) return "text/css";
-        if (lowerUrl.contains(".png")) return "image/png";
-        if (lowerUrl.contains(".jpg") || lowerUrl.contains(".jpeg")) return "image/jpeg";
-        if (lowerUrl.contains(".gif")) return "image/gif";
-        if (lowerUrl.contains(".webp")) return "image/webp";
-        if (lowerUrl.contains(".svg")) return "image/svg+xml";
-        if (lowerUrl.contains(".woff")) return "font/woff";
-        if (lowerUrl.contains(".woff2")) return "font/woff2";
-        
-        return "text/plain";
-    }
-    
-    /**
-     * Get total number of rules loaded
-     */
+
     public static int getBlockedHostsCount() {
-        return getInstance().filterEngine.getTotalRules();
+        return getInstance().filterEngine.getRuleCount();
     }
-    
-    /**
-     * DEPRECATED: Use getWhitelistCount()
-     */
-    @Deprecated
-    public static int getWhitelistCount() {
-        return 0; // Not tracked separately anymore
-    }
-    
-    /**
-     * Get total number of blocked requests
-     */
+
     public static int getBlockedRequestsCount() {
-        return getInstance().filterEngine.getBlockedCount();
+        return 0;
     }
-    
-    /**
-     * Get total number of allowed requests
-     */
+
     public static int getAllowedRequestsCount() {
-        return getInstance().filterEngine.getAllowedCount();
+        return 0;
     }
-    
-    /**
-     * Get cache statistics
-     */
+
+    public static int getWhitelistCount() {
+        return 0;
+    }
+
+    public static void addToWhitelist(String h) {
+    }
+
+    public static void removeFromWhitelist(String h) {
+    }
+
+    public static boolean isWhitelisted(String u) {
+        return false;
+    }
+
+    public static void clearCaches() {
+    }
+
     public static String getCacheStats() {
-        return getInstance().filterEngine.getStats();
+        return "Flat Engine Active";
     }
-    
-    /**
-     * Get detailed statistics
-     */
+
     public static String getStats() {
-        return getInstance().filterEngine.getStats();
+        return "Rules: " + getInstance().filterEngine.getRuleCount();
     }
-    
-    /**
-     * Clear all data and disable blocking
-     */
+
     public static void clear() {
         getInstance().filterEngine.clear();
-        enabled.set(false);
     }
-    
-    /**
-     * Clear only caches (keep rules)
-     */
-    public static void clearCaches() {
-        getInstance().filterEngine.clearCache();
-    }
-    
-    /**
-     * Clear all rules but keep whitelist and settings
-     */
+
     public static void clearRules() {
         getInstance().filterEngine.clear();
+    }
+
+    public static void addFilterRules(String s) {
+
+        getInstance().addRules(Arrays.asList(s.split("\n")));
+    }
+
+    public static void addFilterRules(String[] s) {
+        getInstance().addRules(Arrays.asList(s));
+    }
+
+    public static void addFilterRule(String s) {
+        getInstance().parseAndAddRule(s);
     }
 }

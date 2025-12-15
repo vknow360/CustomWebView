@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.webkit.CookieManager;
 import android.webkit.URLUtil;
+import androidx.core.content.ContextCompat;
 import com.google.appinventor.components.annotations.DesignerComponent;
 import com.google.appinventor.components.annotations.SimpleEvent;
 import com.google.appinventor.components.annotations.SimpleFunction;
@@ -29,7 +30,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 @DesignerComponent(version = 13,
-        versionName = "13",
+        versionName = "1.3",
         description ="Helper class of CustomWebView extension for downloading files <br> Developed by Sunny Gupta",
         category = ComponentCategory.EXTENSION,
         nonVisible = true,
@@ -56,7 +57,8 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
         super(container.$form());
         context = container.$context();
         downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU){
             context.registerReceiver(completed, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),Context.RECEIVER_NOT_EXPORTED);
         }else {
             context.registerReceiver(completed, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
