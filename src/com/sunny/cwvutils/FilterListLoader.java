@@ -1,4 +1,4 @@
-package com.sunny.CustomWebView;
+package com.sunny.cwvutils;
 
 import android.content.Context;
 import android.util.Log;

@@ -15,9 +15,13 @@ import com.google.appinventor.components.runtime.Form;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class CustomWebClient extends WebViewClient {
     private static final String TAG = "CustomWebClient";
@@ -52,11 +56,19 @@ public class CustomWebClient extends WebViewClient {
 
         // Handle HTTP/HTTPS URLs
         if (url.startsWith("http://") || url.startsWith("https://")) {
-            return !customWebView.FollowLinks();
+            if (!customWebView.FollowLinks()) {
+                return true;
+            }
+            Map<String, String> headers = customWebView.getCustomHeadersMap();
+            if (!headers.isEmpty()) {
+                customWebView.getWebView().loadUrl(url, headers);
+                return true;
+            }
+            return false;
         }
 
         // Handle deep links (tel:, mailto:, intent:, etc.)
-        return customWebView.DeepLinks() && DeepLinkParser(url);
+        return customWebView.DeepLinks() && parseDeepLink(url);
     }
 
     @Override
@@ -67,14 +79,16 @@ public class CustomWebClient extends WebViewClient {
             return handleAppRequest(request.getUrl().toString());
         }
 
-        // Enhanced ad blocking with resource type detection
-        if (AdBlocker.isEnabled()) {
-            long resourceType = getResourceType(url, request);
-            // Use topLevelHost to construct page URL (safe for background thread)
+        // Request interception (ad blocking etc.)
+        RequestInterceptor interceptor = customWebView.getRequestInterceptor();
+        if (interceptor != null) {
             String pageUrl = getPageUrlSafe();
-
-            if (AdBlocker.isAd(url, pageUrl, resourceType)) {
-                return AdBlocker.createEmptyResourceForUrl(url);
+            boolean isMainFrame = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && request.isForMainFrame();
+            Map<String, String> headers = request.getRequestHeaders();
+            String acceptHeader = headers != null ? headers.get("Accept") : null;
+            WebResourceResponse blocked = interceptor.intercept(url, pageUrl, isMainFrame, acceptHeader);
+            if (blocked != null) {
+                return blocked;
             }
         }
         return super.shouldInterceptRequest(view, request);
@@ -88,16 +102,18 @@ public class CustomWebClient extends WebViewClient {
             return handleAppRequest(url);
         }
 
-        // Enhanced ad blocking with resource type detection
-        if (AdBlocker.isEnabled()) {
-            long resourceType = getResourceType(url, null);
-            // Use topLevelHost to construct page URL (safe for background thread)
+        // Request interception (ad blocking etc.)
+        RequestInterceptor interceptor = customWebView.getRequestInterceptor();
+        if (interceptor != null) {
             String pageUrl = getPageUrlSafe();
-
-            if (AdBlocker.isAd(url, pageUrl, resourceType)) {
-                return AdBlocker.createEmptyResourceForUrl(url);
+            WebResourceResponse blocked = interceptor.intercept(url, pageUrl, false, null);
+            if (blocked != null) {
+                return blocked;
             }
         }
+
+        // We don't implement header injection for the deprecated version
+        // as it doesn't provide easy access to request headers/method
         return super.shouldInterceptRequest(view, url);
     }
 
@@ -112,72 +128,6 @@ public class CustomWebClient extends WebViewClient {
         return null;
     }
 
-    /**
-     * Detect resource type from URL and request
-     */
-    private long getResourceType(String url, WebResourceRequest request) {
-        // Detect main frame request (API 21+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && request != null) {
-            if (request.isForMainFrame()) {
-                return FlatFilterEngine.TYPE_DOCUMENT;
-            }
-        }
-
-        if (url == null) {
-            return FlatFilterEngine.TYPE_OTHER;
-        }
-
-        String lowerUrl = url.toLowerCase();
-
-        // Check file extension
-        if (lowerUrl.contains(".js")) {
-            return FlatFilterEngine.TYPE_SCRIPT;
-        } else if (lowerUrl.contains(".css")) {
-            return FlatFilterEngine.TYPE_STYLESHEET;
-        } else if (lowerUrl.contains(".png") || lowerUrl.contains(".jpg") ||
-                lowerUrl.contains(".jpeg") || lowerUrl.contains(".gif") ||
-                lowerUrl.contains(".webp") || lowerUrl.contains(".svg") ||
-                lowerUrl.contains(".ico")) {
-            return FlatFilterEngine.TYPE_IMAGE;
-        } else if (lowerUrl.contains(".woff") || lowerUrl.contains(".woff2") ||
-                lowerUrl.contains(".ttf") || lowerUrl.contains(".eot")) {
-            return FlatFilterEngine.TYPE_FONT;
-        } else if (lowerUrl.contains(".mp4") || lowerUrl.contains(".webm") ||
-                lowerUrl.contains(".mp3") || lowerUrl.contains(".ogg")) {
-            return FlatFilterEngine.TYPE_MEDIA;
-        }
-
-        // Check by request headers if available (API 21+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && request != null) {
-            Map<String, String> headers = request.getRequestHeaders();
-            if (headers != null) {
-                String accept = headers.get("Accept");
-                if (accept != null) {
-                    accept = accept.toLowerCase();
-                    if (accept.contains("text/css")) {
-                        return FlatFilterEngine.TYPE_STYLESHEET;
-                    } else if (accept.contains("image/")) {
-                        return FlatFilterEngine.TYPE_IMAGE;
-                    } else if (accept.contains("application/javascript") ||
-                            accept.contains("text/javascript")) {
-                        return FlatFilterEngine.TYPE_SCRIPT;
-                    } else if (accept.contains("font/") || accept.contains("application/font")) {
-                        return FlatFilterEngine.TYPE_FONT;
-                    } else if (accept.contains("video/") || accept.contains("audio/")) {
-                        return FlatFilterEngine.TYPE_MEDIA;
-                    }
-                }
-            }
-        }
-
-        // Check for XHR/Fetch requests
-        if (lowerUrl.contains("/api/") || lowerUrl.contains("/ajax/") ||
-                lowerUrl.contains(".json")) {
-            return FlatFilterEngine.TYPE_XMLHTTP;
-        }
-
-        return FlatFilterEngine.TYPE_OTHER;
-    }
 
     @Override
     public void onPageFinished(WebView view, String url) {
@@ -187,9 +137,10 @@ public class CustomWebClient extends WebViewClient {
                 customWebView.PageLoaded(view.getId());
             }
 
-            // Inject AdBlock cosmetic filters
-            if (AdBlocker.isEnabled()) {
-                AdBlocker.injectCosmeticHelper(view);
+            // Invoke request interceptor for post-load processing (e.g. cosmetic filtering)
+            RequestInterceptor interceptor = customWebView.getRequestInterceptor();
+            if (interceptor != null) {
+                interceptor.onPageFinished(view);
             }
 
             // Inject custom print function that prevents navigation
@@ -221,7 +172,7 @@ public class CustomWebClient extends WebViewClient {
                     "        }" +
                     "    });" +
                     "    " +
-                    "    // Handle beforeprint event" +
+                    "    // Handle before print event" +
                     "    window.addEventListener('beforeprint', function(e) {" +
                     "        e.preventDefault();" +
                     "        window.print();" +
@@ -239,13 +190,6 @@ public class CustomWebClient extends WebViewClient {
     public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
         customWebView.setSSLHandler(handler);
         customWebView.OnReceivedSslError(error.getPrimaryError());
-        /*
-         * if (ignoreSslErrors) {
-         * handler.proceed();
-         * } else {
-         * handler.cancel();
-         * }
-         */
     }
 
     @Override
@@ -301,7 +245,14 @@ public class CustomWebClient extends WebViewClient {
         }
         InputStream stream;
         try {
-            stream = Form.getActiveForm().openAsset(path);
+            Form activeForm = customWebView.getForm();
+            if (activeForm == null) {
+                activeForm = Form.getActiveForm();
+            }
+            if (activeForm == null) {
+                throw new java.io.IOException("Active form is null");
+            }
+            stream = activeForm.openAsset(path);
             Map<String, String> headers = new HashMap<>();
             headers.put("Access-Control-Allow-Origin", "localhost");
             String mimeType = URLConnection.getFileNameMap().getContentTypeFor(path);
@@ -325,47 +276,64 @@ public class CustomWebClient extends WebViewClient {
         }
     }
 
-    private boolean DeepLinkParser(String url) {
+    private boolean safeStartActivity(Intent intent) {
+        try {
+            activity.startActivity(intent);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean parseDeepLink(String url) {
         PackageManager packageManager = context.getPackageManager();
         Intent intent;
         if (url.startsWith("tel:")) {
             intent = new Intent(Intent.ACTION_DIAL, Uri.parse(url));
-            activity.startActivity(intent);
-            return true;
+            return safeStartActivity(intent);
         } else if (url.startsWith("mailto:") || url.startsWith("sms:")) {
             intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            activity.startActivity(intent);
-            return true;
+            return safeStartActivity(intent);
         } else if (url.startsWith("whatsapp:")) {
             intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             intent.setPackage("com.whatsapp");
-            activity.startActivity(intent);
-            return true;
+            if (intent.resolveActivity(packageManager) != null) {
+                return safeStartActivity(intent);
+            }
+            intent.setPackage(null);
+            if (intent.resolveActivity(packageManager) != null) {
+                return safeStartActivity(intent);
+            }
+            return false;
         } else if (url.startsWith("geo:")) {
             intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             intent.setPackage("com.google.android.apps.maps");
             if (intent.resolveActivity(packageManager) != null) {
-                activity.startActivity(intent);
-                return true;
-            } else {
-                return false;
+                return safeStartActivity(intent);
             }
+            intent.setPackage(null);
+            if (intent.resolveActivity(packageManager) != null) {
+                return safeStartActivity(intent);
+            }
+            return false;
         } else if (url.startsWith("intent:")) {
             try {
                 intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
                 if (intent.resolveActivity(packageManager) != null) {
-                    activity.startActivity(intent);
-                    return true;
+                    return safeStartActivity(intent);
                 }
                 String fallbackUrl = intent.getStringExtra("browser_fallback_url");
                 if (fallbackUrl != null) {
                     customWebView.getWebView().loadUrl(fallbackUrl);
-                }
-                intent = new Intent(Intent.ACTION_VIEW).setData(
-                        Uri.parse("market://details?id=" + intent.getPackage()));
-                if (intent.resolveActivity(packageManager) != null) {
-                    activity.startActivity(intent);
                     return true;
+                }
+                if (intent.getPackage() != null) {
+                    Intent marketIntent = new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("market://details?id=" + intent.getPackage()));
+                    if (marketIntent.resolveActivity(packageManager) != null) {
+                        return safeStartActivity(marketIntent);
+                    }
                 }
                 return false;
             } catch (Exception e) {
@@ -374,8 +342,7 @@ public class CustomWebClient extends WebViewClient {
             }
         } else if (customWebView.isCustomDeepLink(url)) {
             intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            activity.startActivity(intent);
-            return true;
+            return safeStartActivity(intent);
         }
         return false;
     }

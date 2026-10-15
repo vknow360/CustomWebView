@@ -10,12 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.webkit.CookieManager;
 import android.webkit.URLUtil;
-import androidx.core.content.ContextCompat;
-import com.google.appinventor.components.annotations.DesignerComponent;
-import com.google.appinventor.components.annotations.SimpleEvent;
-import com.google.appinventor.components.annotations.SimpleFunction;
-import com.google.appinventor.components.annotations.SimpleObject;
-import com.google.appinventor.components.annotations.SimpleProperty;
+import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
 import com.google.appinventor.components.runtime.ComponentContainer;
@@ -29,16 +24,10 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@DesignerComponent(version = 13,
-        versionName = "1.3",
-        description ="Helper class of CustomWebView extension for downloading files <br> Developed by Sunny Gupta",
-        category = ComponentCategory.EXTENSION,
-        nonVisible = true,
-        iconName = "https://i.ibb.co/4wLNN1Hs/ktvu4bapylsvnykoyhdm-c-fill-w-20-h-20.png",
-        helpUrl="https://github.com/vknow360/CustomWebView",
-        androidMinSdk = 21)
-@SimpleObject(external=true)
-public class DownloadHelper extends AndroidNonvisibleComponent implements OnDestroyListener{
+@DesignerComponent(version = 13, versionName = "1.3", description = "Download Manager helper for CustomWebView to effortlessly download files with customizable paths, progress listeners, and notifications <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://i.ibb.co/4wLNN1Hs/ktvu4bapylsvnykoyhdm-c-fill-w-20-h-20.png", helpUrl = "https://github.com/vknow360/CustomWebView", androidMinSdk = 21)
+@SimpleObject(external = true)
+@UsesPermissions(permissionNames = "android.permission.WRITE_EXTERNAL_STORAGE")
+public class DownloadHelper extends AndroidNonvisibleComponent implements OnDestroyListener {
     private final Context context;
     private final DownloadManager downloadManager;
     private long lastRequestId;
@@ -47,46 +36,52 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
     public BroadcastReceiver completed = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) == lastRequestId){
+            if (intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) == lastRequestId) {
                 DownloadCompleted();
             }
         }
     };
 
-    public DownloadHelper(ComponentContainer container){
+    public DownloadHelper(ComponentContainer container) {
         super(container.$form());
         context = container.$context();
         downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
 
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU){
-            context.registerReceiver(completed, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),Context.RECEIVER_NOT_EXPORTED);
-        }else {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(completed, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+                    Context.RECEIVER_NOT_EXPORTED);
+        } else {
             context.registerReceiver(completed, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         }
     }
+
     @SimpleProperty(description = "Sets download notification visibility")
-    public void NotificationVisibility(int i){
+    public void NotificationVisibility(int i) {
         this.nVisibility = i;
     }
+
     @SimpleFunction(description = "Returns guessed file name")
-    public String GuessFileName(String url, String mimeType, String contentDisposition){
+    public String GuessFileName(String url, String mimeType, String contentDisposition) {
         return URLUtil.guessFileName(url, contentDisposition, mimeType);
     }
+
     @SimpleFunction()
-    public String GetUriString(long id){
+    public String GetUriString(long id) {
         try {
             return downloadManager.getUriForDownloadedFile(id).toString();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return "";
         }
     }
+
     @SimpleFunction()
-    public String GetMimeType(long id){
+    public String GetMimeType(long id) {
         return downloadManager.getMimeTypeForDownloadedFile(id);
     }
+
     @SimpleFunction(description = "Tries to get file size")
-    public void GetFileSize(final String url){
+    public void GetFileSize(final String url) {
         AsynchUtil.runAsynchronously(new Runnable() {
             @Override
             public void run() {
@@ -109,6 +104,7 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
             }
         });
     }
+
     @SimpleFunction(description = "Downloads the given file")
     public void Download(String url, String mimeType, String fileName, String downloadDir) {
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -136,39 +132,46 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
                     public void run() {
                         DownloadManager.Query downloadQuery = new DownloadManager.Query();
                         downloadQuery.setFilterById(lastRequestId);
-                        Cursor cursor = downloadManager.query(downloadQuery);
-                        if (cursor.moveToFirst()){
-                            final int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
-                            if(status != DownloadManager.STATUS_FAILED && !isCancelled) {
-                                int downloadedSize = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                                final int totalSize = cursor.getInt(cursor
-                                        .getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
-                                cursor.close();
-                                if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                                    timer.cancel();
+                        Cursor cursor = null;
+                        try {
+                            cursor = downloadManager.query(downloadQuery);
+                            if (cursor != null && cursor.moveToFirst()) {
+                                final int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                                if (status != DownloadManager.STATUS_FAILED && !isCancelled) {
+                                    int downloadedSize = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                                    final int totalSize = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                                        timer.cancel();
+                                        form.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                DownloadCompleted();
+                                            }
+                                        });
+                                    }
+                                    final int progress = totalSize > 0 ? (int) ((((long) downloadedSize) * 100) / ((long) totalSize)) : 0;
                                     form.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            DownloadCompleted();
+                                            DownloadProgressChanged(progress);
+                                        }
+                                    });
+                                } else {
+                                    timer.cancel();
+                                    isCancelled = true;
+                                    form.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            DownloadFailed();
                                         }
                                     });
                                 }
-                                final int progress = (int) ((((long) downloadedSize)*100) / ((long) totalSize)) ;
-                                form.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        DownloadProgressChanged(progress);
-                                    }
-                                });
-                            }else{
-                                timer.cancel();
-                                isCancelled = true;
-                                form.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        DownloadFailed();
-                                    }
-                                });
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (cursor != null) {
+                                cursor.close();
                             }
                         }
                     }
@@ -177,35 +180,41 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
             }
         });
     }
+
     @SimpleEvent(description = "Event invoked when downloading starts")
-    public void DownloadStarted(long id){
-        EventDispatcher.dispatchEvent(this,"DownloadStarted",id);
+    public void DownloadStarted(long id) {
+        EventDispatcher.dispatchEvent(this, "DownloadStarted", id);
     }
+
     @SimpleEvent(description = "Event invoked after getting file size")
-    public void GotFileSize(long fileSize){
-        EventDispatcher.dispatchEvent(this,"GotFileSize",fileSize);
+    public void GotFileSize(long fileSize) {
+        EventDispatcher.dispatchEvent(this, "GotFileSize", fileSize);
     }
+
     @SimpleEvent(description = "Event invoked when downloading gets completed")
-    public void DownloadCompleted(){
-        EventDispatcher.dispatchEvent(this,"DownloadCompleted");
+    public void DownloadCompleted() {
+        EventDispatcher.dispatchEvent(this, "DownloadCompleted");
     }
+
     @SimpleEvent(description = "Event invoked when downloading gets failed")
-    public void DownloadFailed(){
+    public void DownloadFailed() {
         lastRequestId = 0L;
-        EventDispatcher.dispatchEvent(this,"DownloadFailed");
+        EventDispatcher.dispatchEvent(this, "DownloadFailed");
     }
+
     @SimpleEvent(description = "Event invoked when downloading progress changes")
-    public void DownloadProgressChanged(int progress){
-        EventDispatcher.dispatchEvent(this,"DownloadProgressChanged",progress);
+    public void DownloadProgressChanged(int progress) {
+        EventDispatcher.dispatchEvent(this, "DownloadProgressChanged", progress);
     }
 
     @SimpleFunction(description = "Tries to open the downloaded file from id")
-    public void OpenFile(int id){
+    public void OpenFile(long id) {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             Uri uri = downloadManager.getUriForDownloadedFile(id);
             String mimeType = downloadManager.getMimeTypeForDownloadedFile(id);
-            intent.setDataAndType(uri,mimeType);
+            intent.setDataAndType(uri, mimeType);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
             form.startActivity(intent);
         } catch (Exception e) {
             e.printStackTrace();
@@ -213,11 +222,12 @@ public class DownloadHelper extends AndroidNonvisibleComponent implements OnDest
     }
 
     @SimpleFunction(description = "Cancels the current download request")
-    public void Cancel(){
+    public void Cancel() {
         downloadManager.remove(lastRequestId);
         isCancelled = true;
         DownloadFailed();
     }
+
     @Override
     public void onDestroy() {
         context.unregisterReceiver(completed);

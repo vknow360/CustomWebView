@@ -56,24 +56,7 @@ public class CustomWebChromeClient extends WebChromeClient {
                 new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT));
-            /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                activity.getWindow().setDecorFitsSystemWindows(false);
-                WindowInsetsController controller = activity.getWindow().getInsetsController();
-                if(controller != null) {
-                    mOriginalSystemUiVisibility = controller.getSystemBarsBehavior();
-                    controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-                    controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-                }
-            }else {
-                mOriginalSystemUiVisibility = activity.getWindow().getDecorView().getSystemUiVisibility();
-                activity.getWindow().getDecorView().setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_IMMERSIVE);
-            }*/
+
         mOriginalSystemUiVisibility = activity.getWindow().getDecorView().getSystemUiVisibility();
         activity.getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -90,16 +73,7 @@ public class CustomWebChromeClient extends WebChromeClient {
     public void onHideCustomView() {
         ((FrameLayout) activity.getWindow().getDecorView()).removeView(mCustomView);
         mCustomView = null;
-            /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                activity.getWindow().setDecorFitsSystemWindows(false);
-                WindowInsetsController controller = activity.getWindow().getInsetsController();
-                if(controller != null) {
-                    controller.show(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-                    controller.setSystemBarsBehavior(mOriginalSystemUiVisibility);
-                }
-            }else {
-                activity.getWindow().getDecorView().setSystemUiVisibility(mOriginalSystemUiVisibility);
-            }*/
+
         activity.getWindow().getDecorView().setSystemUiVisibility(mOriginalSystemUiVisibility);
         activity.setRequestedOrientation(mOriginalOrientation);
         mCustomViewCallback.onCustomViewHidden();
@@ -110,7 +84,12 @@ public class CustomWebChromeClient extends WebChromeClient {
     @Override
     public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
         customWebView.setFilePathCallback(filePathCallback);
-        customWebView.FileUploadNeeded(view.getId(), fileChooserParams.getAcceptTypes()[0], fileChooserParams.isCaptureEnabled());
+        String[] acceptTypes = fileChooserParams != null ? fileChooserParams.getAcceptTypes() : null;
+        String mimeType = (acceptTypes != null && acceptTypes.length > 0 && acceptTypes[0] != null && !acceptTypes[0].isEmpty())
+                ? acceptTypes[0]
+                : "*/*";
+        boolean capture = fileChooserParams != null && fileChooserParams.isCaptureEnabled();
+        customWebView.FileUploadNeeded(view.getId(), mimeType, capture);
         return customWebView.FileAccess();
     }
 

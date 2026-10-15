@@ -19,9 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.*;
 import android.widget.FrameLayout;
-import androidx.webkit.ServiceWorkerControllerCompat;
-import androidx.webkit.WebSettingsCompat;
-import androidx.webkit.WebViewFeature;
 import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
@@ -29,33 +26,45 @@ import com.google.appinventor.components.runtime.AndroidNonvisibleComponent;
 import com.google.appinventor.components.runtime.AndroidViewComponent;
 import com.google.appinventor.components.runtime.ComponentContainer;
 import com.google.appinventor.components.runtime.EventDispatcher;
+import com.google.appinventor.components.runtime.Form;
+import com.google.appinventor.components.runtime.OnDestroyListener;
 import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.runtime.util.MediaUtil;
 import com.google.appinventor.components.runtime.util.YailDictionary;
 import com.sunny.CustomWebView.util.Constants;
 
+import android.net.http.HttpResponseCache;
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import com.google.appinventor.components.runtime.util.YailList;
 
-@DesignerComponent(version = 13, versionName = "13", description = "An extended form of Web Viewer <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://i.ibb.co/4wLNN1Hs/ktvu4bapylsvnykoyhdm-c-fill-w-20-h-20.png", helpUrl = "https://github.com/vknow360/CustomWebView", androidMinSdk = 21)
+@DesignerComponent(version = 13, versionName = "13", description = "An advanced, high-performance WebView component featuring multi-tab views, ad blocking, dark mode, and full web-app control <br> Developed by Sunny Gupta", category = ComponentCategory.EXTENSION, nonVisible = true, iconName = "https://i.ibb.co/4wLNN1Hs/ktvu4bapylsvnykoyhdm-c-fill-w-20-h-20.png", helpUrl = "https://github.com/vknow360/CustomWebView", androidMinSdk = 21)
 @SimpleObject(external = true)
-@UsesPermissions(permissionNames = "android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_DOWNLOAD_MANAGER,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.webkit.resource.VIDEO_CAPTURE,android.webkit.resource.AUDIO_CAPTURE,android.launcher.permission.INSTALL_SHORTCUT")
-@UsesLibraries(libraries = "androidx-webkit.jar")
-public final class CustomWebView extends AndroidNonvisibleComponent implements WView.SwipeCallback {
+@UsesPermissions(permissionNames = "android.permission.WRITE_EXTERNAL_STORAGE,android.permission.ACCESS_FINE_LOCATION,android.permission.RECORD_AUDIO, android.permission.MODIFY_AUDIO_SETTINGS, android.permission.CAMERA,android.permission.VIBRATE,android.launcher.permission.INSTALL_SHORTCUT")
+public final class CustomWebView extends AndroidNonvisibleComponent implements WView.SwipeCallback, OnDestroyListener {
     private final Activity activity;
     private WView webView;
     private final Context context;
+
+    // ==========================================
+    // === PROPERTIES & STATE ===
+    // ==========================================
+
     private boolean followLinks = true;
     private boolean prompt = true;
-    private String UserAgent = "";
+    private String currentUserAgent = "";
     private final WebViewInterface wvInterface;
     private JsPromptResult jsPromptResult;
-    private String MOBILE_USER_AGENT = "";
+    private String defaultUserAgent = "";
     private ValueCallback<Uri[]> mFilePathCallback;
     private Message dontSend;
     private Message reSend;
     private PermissionRequest permissionRequest;
     private final CookieManager cookieManager;
+    private RequestInterceptor requestInterceptor;
     private JsResult jsResult;
     private JsResult jsAlert;
     private HttpAuthHandler httpAuthHandler;
@@ -74,6 +83,12 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     private SslErrorHandler sslHandler;
     private final List<String> customDeepLink = new ArrayList<>();
     private boolean isScrollEnabled = true;
+    private final Map<String, String> customHeaders = new ConcurrentHashMap<>();
+    private final Set<String> headerDomains = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+
+    // ==========================================
+    // === LIFECYCLE & INITIALIZATION ===
+    // ==========================================
 
     public CustomWebView(ComponentContainer container) {
         super(container.$form());
@@ -83,6 +98,23 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         cookieManager = CookieManager.getInstance();
         deviceDensity = container.$form().deviceDensity();
         webView = new WView(-1, context, this);
+        container.$form().registerForOnDestroy(this);
+        initHttpCache();
+    }
+
+    private void initHttpCache() {
+        try {
+            File cacheDir = new File(context.getCacheDir(), "http_header_cache");
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            long cacheSize = 10 * 1024 * 1024; // 10 MB
+            if (HttpResponseCache.getInstalled() == null) {
+                HttpResponseCache.install(cacheDir, cacheSize);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private int d2p(int d) {
@@ -105,8 +137,33 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         return context;
     }
 
+    public Form getForm() {
+        return form;
+    }
+
     public void setLoading(boolean isLoading) {
         this.isLoading = isLoading;
+    }
+
+    @Override
+    public void onDestroy() {
+        HttpResponseCache cache = HttpResponseCache.getInstalled();
+        if (cache != null) {
+            cache.flush();
+        }
+        
+        // Prevent memory leaks by destroying all WebViews
+        for (WView w : wv.values()) {
+            if (w != null) {
+                ViewGroup parent = (ViewGroup) w.getParent();
+                if (parent != null) {
+                    parent.removeView(w);
+                }
+                w.destroy();
+            }
+        }
+        wv.clear();
+        webView = null;
     }
 
     public boolean isLoading() {
@@ -115,6 +172,14 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
 
     public void setSSLHandler(SslErrorHandler sslHandler) {
         this.sslHandler = sslHandler;
+    }
+
+    public void setRequestInterceptor(RequestInterceptor interceptor) {
+        this.requestInterceptor = interceptor;
+    }
+
+    public RequestInterceptor getRequestInterceptor() {
+        return requestInterceptor;
     }
 
     public void setFormHandlers(Message dontResend, Message resend) {
@@ -159,22 +224,9 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         permissionRequest = request;
     }
 
-    @SuppressWarnings("deprecation")
-    @SimpleFunction()
-    public void SetDarkMode(boolean enable) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            WebSettingsCompat.setAlgorithmicDarkeningAllowed(webView.getSettings(), enable);
-        } else {
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                WebSettingsCompat.setForceDarkStrategy(
-                        webView.getSettings(),
-                        WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING);
-                WebSettingsCompat.setForceDark(
-                        webView.getSettings(),
-                        enable ? WebSettingsCompat.FORCE_DARK_ON : WebSettingsCompat.FORCE_DARK_OFF);
-            }
-        }
-    }
+    // ==========================================
+    // === TAB & VIEW MANAGEMENT ===
+    // ==========================================
 
     @SimpleFunction(description = "Creates the webview in given arrangement with id")
     public void CreateWebView(Object container, final int id) {
@@ -209,7 +261,7 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
 
     private void resetWebView(final WView web) {
         web.addJavascriptInterface(wvInterface, "AppInventor");
-        MOBILE_USER_AGENT = web.getSettings().getUserAgentString();
+        defaultUserAgent = web.getSettings().getUserAgentString();
         web.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING);
         web.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
         web.setFocusable(true);
@@ -243,10 +295,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         web.getSettings().setDatabaseEnabled(true);
         web.getSettings().setGeolocationEnabled(false);
         web.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        if (UserAgent.isEmpty()) {
-            UserAgent = MOBILE_USER_AGENT;
+        if (currentUserAgent.isEmpty()) {
+            currentUserAgent = defaultUserAgent;
         }
-        web.getSettings().setUserAgentString(UserAgent);
+        web.getSettings().setUserAgentString(currentUserAgent);
         web.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String s, String s1, String s2, String s3, long l) {
@@ -337,6 +389,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         return new ArrayList<>(wv.keySet());
     }
 
+    // ==========================================
+    // === COMPONENT PROPERTIES (GETTERS/SETTERS) ===
+    // ==========================================
+
     @SimpleProperty(description = "Set webview string")
     public void WebViewString(String newString) {
         wvInterface.setWebViewStringFromBlocks(newString);
@@ -405,17 +461,17 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
 
     @SimpleProperty(description = "Get webview user agent")
     public String UserAgent() {
-        return UserAgent;
+        return currentUserAgent;
     }
 
     @SimpleProperty(description = "Sets the WebView's user-agent string. If the string is null or empty, the system default value will be used. ")
     public void UserAgent(String userAgent) {
         if (!userAgent.isEmpty()) {
-            UserAgent = userAgent;
+            currentUserAgent = userAgent;
         } else {
-            UserAgent = MOBILE_USER_AGENT;
+            currentUserAgent = defaultUserAgent;
         }
-        webView.getSettings().setUserAgentString(UserAgent);
+        webView.getSettings().setUserAgentString(currentUserAgent);
     }
 
     @SimpleProperty(description = "URL of the page currently viewed")
@@ -451,192 +507,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         followLinks = follow;
     }
 
-    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN, defaultValue = "False")
-    @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Sets whether to block ads or not")
-    public void BlockAds(boolean block) {
-        AdBlocker.enable(block);
-    }
-
-    @SimpleProperty(description = "Returns whether ads are blocked or not")
-    public boolean BlockAds() {
-        return AdBlocker.isEnabled();
-    }
-
-    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING, defaultValue = "")
-    @SimpleProperty(category = PropertyCategory.BEHAVIOR, description = "Sets the ad hosts which will be blocked")
-    public void AdHosts(String hosts) {
-        AdBlocker.init(hosts);
-    }
-
-    @SimpleFunction(description = "Initialize ad hosts asynchronously for better performance")
-    public void InitAdHostsAsync(String hosts) {
-        AdBlocker.initAsync(hosts);
-    }
-
-    @SimpleFunction(description = "Add a domain to the ad blocking whitelist")
-    public void AddToWhitelist(String host) {
-        AdBlocker.addToWhitelist(host);
-    }
-
-    @SimpleFunction(description = "Remove a domain from the ad blocking whitelist")
-    public void RemoveFromWhitelist(String host) {
-        AdBlocker.removeFromWhitelist(host);
-    }
-
-    @SimpleFunction(description = "Check if a URL is whitelisted")
-    public boolean IsWhitelisted(String url) {
-        return AdBlocker.isWhitelisted(url);
-    }
-
-    @SimpleFunction(description = "Get the number of blocked ad hosts")
-    public int GetBlockedHostsCount() {
-        return AdBlocker.getBlockedHostsCount();
-    }
-
-    @SimpleFunction(description = "Get the number of whitelisted domains")
-    public int GetWhitelistCount() {
-        return AdBlocker.getWhitelistCount();
-    }
-
-    @SimpleFunction(description = "Get ad blocker cache statistics")
-    public String GetAdBlockerStats() {
-        return AdBlocker.getCacheStats();
-    }
-
-    @SimpleFunction(description = "Clear ad blocker caches only (keep host lists)")
-    public void ClearAdBlockerCaches() {
-        AdBlocker.clearCaches();
-    }
-
-    @SimpleFunction(description = "Clear all ad blocker data")
-    public void ClearAdBlockerData() {
-        AdBlocker.clear();
-    }
-
-    // ========== NEW ENHANCED AD BLOCKER API ==========
-
-    @SimpleFunction(description = "Initialize AdBlocker with context (required for loading filter lists from assets)")
-    public void InitAdBlocker() {
-        AdBlocker.init(context);
-    }
-
-    @SimpleFunction(description = "Load filter list from app assets. Use callback blocks to handle success/error.")
-    public void LoadFilterListFromAsset(final String assetPath) {
-        AdBlocker.loadFilterListFromAsset(assetPath, new FilterListLoader.LoadCallback() {
-            @Override
-            public void onSuccess(List<String> rules, String source) {
-                OnFilterListLoaded(rules.size(), source);
-            }
-
-            @Override
-            public void onError(String error, String source) {
-                OnFilterListError(error, source);
-            }
-
-            @Override
-            public void onProgress(int loaded, String source) {
-                OnFilterListProgress(loaded, source);
-            }
-        });
-    }
-
-    @SimpleFunction(description = "Load filter list from external URL. Use callback events to handle success/error.")
-    public void LoadFilterListFromUrl(final String url) {
-        AdBlocker.loadFilterListFromUrl(url, new FilterListLoader.LoadCallback() {
-            @Override
-            public void onSuccess(List<String> rules, String source) {
-                OnFilterListLoaded(rules.size(), source);
-            }
-
-            @Override
-            public void onError(String error, String source) {
-                OnFilterListError(error, source);
-            }
-
-            @Override
-            public void onProgress(int loaded, String source) {
-                OnFilterListProgress(loaded, source);
-            }
-        });
-    }
-
-    @SimpleFunction(description = "Load filter list from file path. Use callback events to handle success/error.")
-    public void LoadFilterListFromFile(final String filePath) {
-        AdBlocker.loadFilterListFromFile(filePath, new FilterListLoader.LoadCallback() {
-            @Override
-            public void onSuccess(List<String> rules, String source) {
-                OnFilterListLoaded(rules.size(), source);
-            }
-
-            @Override
-            public void onError(String error, String source) {
-                OnFilterListError(error, source);
-            }
-
-            @Override
-            public void onProgress(int loaded, String source) {
-                OnFilterListProgress(loaded, source);
-            }
-        });
-    }
-
-    @SimpleFunction(description = "Load default minimal filter list with common ad domains")
-    public void LoadDefaultFilterList() {
-        AdBlocker.loadDefaultFilters();
-    }
-
-    @SimpleFunction(description = "Add custom filter rules in AdBlock Plus format (e.g., ||example.com^, /ads/*, etc.)")
-    public void AddFilterRules(String rulesString) {
-        AdBlocker.addFilterRules(rulesString);
-    }
-
-    @SimpleFunction(description = "Add a single filter rule in AdBlock Plus format")
-    public void AddFilterRule(String rule) {
-        AdBlocker.addFilterRule(rule);
-    }
-
-    @SimpleFunction(description = "Get total number of filter rules loaded")
-    public int GetFilterRulesCount() {
-        return AdBlocker.getBlockedHostsCount();
-    }
-
-    @SimpleFunction(description = "Get total number of blocked requests")
-    public int GetBlockedRequestsCount() {
-        return AdBlocker.getBlockedRequestsCount();
-    }
-
-    @SimpleFunction(description = "Get total number of allowed requests")
-    public int GetAllowedRequestsCount() {
-        return AdBlocker.getAllowedRequestsCount();
-    }
-
-    @SimpleFunction(description = "Get detailed AdBlocker statistics")
-    public String GetAdBlockerDetailedStats() {
-        return AdBlocker.getStats();
-    }
-
-    @SimpleFunction(description = "Clear all filter rules but keep whitelist and settings")
-    public void ClearFilterRules() {
-        AdBlocker.clearRules();
-    }
-
-    @SimpleEvent(description = "Event fired when a filter list is successfully loaded")
-    public void OnFilterListLoaded(int rulesCount, String source) {
-        EventDispatcher.dispatchEvent(this, "OnFilterListLoaded", rulesCount, source);
-    }
-
-    @SimpleEvent(description = "Event fired when filter list loading fails")
-    public void OnFilterListError(String error, String source) {
-        EventDispatcher.dispatchEvent(this, "OnFilterListError", error, source);
-    }
-
-    @SimpleEvent(description = "Event fired during filter list loading to show progress")
-    public void OnFilterListProgress(int loaded, String source) {
-        EventDispatcher.dispatchEvent(this, "OnFilterListProgress", loaded, source);
-    }
-
-    // ========== END NEW ENHANCED AD BLOCKER API ==========
-
     @SimpleProperty(description = "Sets whether the WebView requires a user gesture to play media")
     public void AutoplayMedia(boolean bool) {
         webView.getSettings().setMediaPlaybackRequiresUserGesture(bool);
@@ -649,10 +519,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
 
     @SimpleProperty(description = "Sets cache mode for active webview")
     public void CacheMode(int mode) {
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_CACHE_MODE)) {
-            ServiceWorkerControllerCompat.getInstance().getServiceWorkerWebSettings().setCacheMode(mode);
-
-        }
         webView.getSettings().setCacheMode(mode);
     }
 
@@ -718,11 +584,11 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     @SimpleProperty(description = "Sets whether to load content in desktop mode")
     public void DesktopMode(boolean mode) {
         if (mode) {
-            UserAgent = UserAgent.replace("Android", "diordnA").replace("Mobile", "eliboM");
+            currentUserAgent = currentUserAgent.replace("Android", "diordnA").replace("Mobile", "eliboM");
         } else {
-            UserAgent = UserAgent.replace("diordnA", "Android").replace("eliboM", "Mobile");
+            currentUserAgent = currentUserAgent.replace("diordnA", "Android").replace("eliboM", "Mobile");
         }
-        webView.getSettings().setUserAgentString(UserAgent);
+        webView.getSettings().setUserAgentString(currentUserAgent);
         desktopMode = mode;
     }
 
@@ -731,8 +597,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         return desktopMode;
     }
 
-    // @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_BOOLEAN,
-    // defaultValue = "True")
     @SimpleProperty(description = "Sets whether to enable text selection and context menu")
     public void LongClickable(boolean bool) {
         webView.setLongClickable(bool);
@@ -754,9 +618,6 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         webView.getSettings().setAllowFileAccessFromFileURLs(allow);
         webView.getSettings().setAllowUniversalAccessFromFileURLs(allow);
         webView.getSettings().setAllowContentAccess(allow);
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_FILE_ACCESS)) {
-            ServiceWorkerControllerCompat.getInstance().getServiceWorkerWebSettings().setAllowFileAccess(allow);
-        }
     }
 
     @SimpleProperty(description = "Returns whether webview can access local files")
@@ -855,6 +716,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
     public void WebViewStringChanged(String value) {
         EventDispatcher.dispatchEvent(this, "WebViewStringChanged", value);
     }
+
+    // ==========================================
+    // === NAVIGATION & BROWSER ACTIONS ===
+    // ==========================================
 
     @SimpleFunction(description = "Stops the current load.")
     public void StopLoading() {
@@ -1057,30 +922,42 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         webView.loadUrl(url);
     }
 
-    @SimpleFunction(description = "Loads the given URL.")
-    public void GoToUrl2(int id, String url) {
+    @SimpleFunction(description = "Loads the given URL in the WebView corresponding to the given id.")
+    public void GoToUrlInTab(int id, String url) {
         CancelJsRequests();
-        wv.get(id).loadUrl(url);
+        WebView w = wv.get(id);
+        if (w != null) {
+            w.loadUrl(url);
+        }
     }
 
     @SimpleFunction(description = "Loads the URL with postData using 'POST' method into active WebView.")
     public void PostData(String url, String data) throws UnsupportedEncodingException {
-        webView.postUrl(url, data.getBytes("UTF-8"));
+        if (webView != null) {
+            webView.postUrl(url, data.getBytes("UTF-8"));
+        }
     }
 
     @SimpleFunction(description = "Does a best-effort attempt to pause any processing that can be paused safely, such as animations and geolocation. Note that this call does not pause JavaScript.")
     public void PauseWebView(int id) {
-        wv.get(id).onPause();
+        WebView w = wv.get(id);
+        if (w != null) {
+            w.onPause();
+        }
     }
 
     @SimpleFunction(description = "Resumes the previously paused WebView.")
     public void ResumeWebView(int id) {
-        wv.get(id).onResume();
+        WebView w = wv.get(id);
+        if (w != null) {
+            w.onResume();
+        }
     }
 
     @SimpleFunction(description = "Gets the progress for the given webview")
     public int GetProgress(int id) {
-        return wv.get(id).getProgress();
+        WebView w = wv.get(id);
+        return w != null ? w.getProgress() : 0;
     }
 
     @SimpleEvent(description = "Event triggered when a window needs to be closed")
@@ -1108,6 +985,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         EventDispatcher.dispatchEvent(this, "OnConsoleMessage", message, lineNumber, sourceID, level);
     }
 
+    // ==========================================
+    // === JAVASCRIPT & COMMUNICATION ===
+    // ==========================================
+
     @SimpleFunction(description = "Asynchronously evaluates JavaScript in the context of the currently displayed page.")
     public void EvaluateJavaScript(String script) {
         webView.evaluateJavascript(script, new ValueCallback<String>() {
@@ -1131,12 +1012,63 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
         return history;
     }
 
+    // ==========================================
+    // === HEADERS, COOKIES & SECURITY ===
+    // ==========================================
+
+    @SimpleFunction(description = "Sets the custom headers to be used for all subsequent requests.")
+    public void SetCustomHeaders(YailDictionary headers) {
+        customHeaders.clear();
+        for (Object key : headers.keySet()) {
+            customHeaders.put(key.toString(), headers.get(key).toString());
+        }
+    }
+
+    @SimpleFunction(description = "Clears all custom headers.")
+    public void ClearCustomHeaders() {
+        customHeaders.clear();
+    }
+
+    @SimpleFunction(description = "Sets the domains for which custom headers should be sent. If empty, headers are sent to all domains.")
+    public void SetHeaderDomains(YailList domains) {
+        headerDomains.clear();
+        for (Object domain : domains.toArray()) {
+            headerDomains.add(domain.toString());
+        }
+    }
+
+    @SimpleFunction(description = "Clears the header domains filter.")
+    public void ClearHeaderDomains() {
+        headerDomains.clear();
+    }
+
+    @SimpleProperty(description = "Returns the current custom headers.")
+    public YailDictionary CustomHeaders() {
+        return YailDictionary.makeDictionary(customHeaders);
+    }
+
+    @SimpleProperty(description = "Returns the current header domains.")
+    public YailList HeaderDomains() {
+        return YailList.makeList(headerDomains);
+    }
+
+    public Map<String, String> getCustomHeadersMap() {
+        return customHeaders;
+    }
+
+    public Set<String> getHeaderDomainsSet() {
+        return headerDomains;
+    }
+
     @SimpleFunction(description = "Loads the given URL with the specified additional HTTP headers defined is list of lists.")
     public void LoadWithHeaders(String url, YailDictionary headers) {
+        Map<String, String> optionsMap = new HashMap<>();
         if (!headers.isEmpty()) {
-            Map<String, String> optionsMap = new HashMap<>();
             for (Object key : headers.keySet()) {
-                optionsMap.put((String) key, (String) headers.get(key));
+                String k = key.toString();
+                String v = headers.get(key).toString();
+                optionsMap.put(k, v);
+                customHeaders.put(k, v); // Also store for sub-requests
             }
             webView.loadUrl(url, optionsMap);
         } else {
@@ -1295,6 +1227,10 @@ public final class CustomWebView extends AndroidNonvisibleComponent implements W
             permissionRequest = null;
         }
     }
+
+    // ==========================================
+    // === EVENT DISPATCHERS ===
+    // ==========================================
 
     @SimpleEvent(description = "Event raised after getting SSL certificate of current displayed url/website with boolean 'isSecure' and Strings 'issuedBy','issuedTo' and 'validTill'.If 'isSecure' is false and other values are empty then assume that website is not secure")
     public void GotCertificate(boolean isSecure, String issuedBy, String issuedTo, String validTill) {

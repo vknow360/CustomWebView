@@ -6,7 +6,7 @@
   <property name="ExternalComponent.dir" location="build/externalComponents" />
   <property name="ExternalComponent-class.dir" location="build/externalComponents-classes" />
 
-  <target name="all" depends="extensions">
+  <target name="all" depends="clean, extensions">
   </target>
 
   <target name="clean">
@@ -25,7 +25,7 @@
     <depend srcdir="src" destdir="${AndroidRuntime-classes.dir}">
       <include name="**/helpers/*.java" />
     </depend>
-    <javac target="7" source="7" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
+    <javac target="8" source="8" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
            includeantruntime="false">
       <classpath>
         <fileset dir="lib/appinventor">
@@ -45,7 +45,7 @@
       <include name="**/*.java" />
       <exclude name="**/helpers/*.java" />
     </depend>
-    <javac target="7" source="7" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
+    <javac target="8" source="8" destdir="${AndroidRuntime-classes.dir}" srcdir="src" encoding="utf-8"
            includeantruntime="false">
       <classpath>
         <fileset dir="lib/appinventor">
@@ -62,7 +62,7 @@
 
   <target name="process" depends="javac">
     <mkdir dir="${Extensions.dir}" />
-    <mkdir dir="${ExternalComponent.dir}" />
+    <mkdir dir="${ExternalComponent.dir}"/>
     <mkdir dir="${ExternalComponent-class.dir}" />
     <java failonerror="true" classname="com.google.appinventor.components.scripts.ExternalComponentGenerator">
       <classpath>
@@ -142,14 +142,18 @@
 
   <target name="dexExtension" depends="">
     <basename property="extensionType" file="${extension}" suffix=".jar"/>
-    <java jar="lib/appinventor/dx.jar"
+    <java classname="com.android.tools.r8.D8"
+          classpath="lib/d8/d8.jar"
           fork="true"
           failonerror="true">
-      <arg value="--dex"/>
-      <arg value="--no-strict"/>
+      <arg value="--release"/>
+      <arg value="--min-api"/>
+      <arg value="21"/>
       <arg value="--output"/>
       <arg value="${ExternalComponent.dir}/${extensionType}/classes.jar"/>
       <arg value="${ExternalComponent-class.dir}/${extensionType}.jar"/>
+      <arg value="--lib"/>
+      <arg value="lib/appinventor/android.jar"/>
     </java>
     <echo>Dexing extension: ${extensionType}</echo>
   </target>
